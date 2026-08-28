@@ -1,0 +1,43 @@
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Azure and deployment-local files
+.azure/
+*.local.bicepparam
+infrastructure/parameters/*.local.json
+
+# Databricks local state
+.databricks/
+.databrickscfg
+.bundle/
+
+# MLflow local runs and generated artifacts
+mlruns/
+artifacts/
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# macOS and editors
+.DS_Store
+.vscode/
+.idea/
