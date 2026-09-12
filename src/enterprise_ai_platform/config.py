@@ -10,6 +10,11 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     environment: Literal["local", "test", "azure"] = "local"
     log_level: str = "INFO"
+    azure_openai_endpoint: str | None = None
+    azure_openai_chat_deployment: str = "gpt-5-mini"
+    azure_openai_embedding_deployment: str = "text-embedding-3-small"
+    azure_search_endpoint: str | None = None
+    azure_search_index_name: str = "equipment-manuals"
 
     model_config = SettingsConfigDict(
         env_file=".env",

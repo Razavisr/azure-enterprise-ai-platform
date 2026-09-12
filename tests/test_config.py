@@ -43,3 +43,28 @@ def test_settings_reject_invalid_environment(
 
     with pytest.raises(ValidationError):
         Settings()
+
+
+def test_settings_read_azure_service_configuration(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv(
+        "AI_PLATFORM_AZURE_OPENAI_ENDPOINT",
+        "https://example-openai.openai.azure.com",
+    )
+    monkeypatch.setenv(
+        "AI_PLATFORM_AZURE_SEARCH_ENDPOINT",
+        "https://example-search.search.windows.net",
+    )
+    monkeypatch.setenv(
+        "AI_PLATFORM_AZURE_SEARCH_INDEX_NAME",
+        "test-manuals",
+    )
+
+    settings = Settings()
+
+    assert settings.azure_openai_endpoint == "https://example-openai.openai.azure.com"
+    assert settings.azure_search_endpoint == "https://example-search.search.windows.net"
+    assert settings.azure_search_index_name == "test-manuals"
