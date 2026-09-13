@@ -1,0 +1,31 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+type: command
+display_name: train-px200-failure-model
+experiment_name: px200-failure-prediction
+description: Train a demonstration model using synthetic PX-200 sensor readings.
+
+code: ./training
+command: >-
+  python train.py
+  --data ${{inputs.sensor_data}}
+  --model-output ${{outputs.model_dir}}/px200_failure_model.joblib
+
+environment: azureml://registries/azureml/environments/sklearn-1.5/versions/53
+
+inputs:
+  sensor_data:
+    type: uri_file
+    path: azureml:px200-sensor-readings:1
+    mode: download
+
+outputs:
+  model_dir:
+    type: custom_model
+    mode: upload
+
+resources:
+  instance_type: Standard_D2_v2
+  instance_count: 1
+
+limits:
+  timeout: 600
