@@ -19,6 +19,7 @@ dependencies = [
     "azure-search-documents>=11.6,<12",
     "langchain-text-splitters>=1,<2",
     "openai>=2,<3",
+    "langgraph>=1,<2",
 ]
 
 [project.optional-dependencies]

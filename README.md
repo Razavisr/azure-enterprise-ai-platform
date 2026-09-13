@@ -1,288 +1,70 @@
 # Azure Enterprise AI Platform
 
-A hands-on portfolio project demonstrating how to build, deploy, and operate an enterprise AI application on Microsoft Azure.
+A portfolio project exploring how to build an enterprise AI application on Microsoft Azure. It uses fictional industrial equipment and synthetic manuals to demonstrate retrieval-augmented generation (RAG), cloud deployment, and—over the next milestones—data engineering, machine learning, and workflow orchestration.
 
-The project uses a fictional predictive-maintenance scenario and synthetic equipment data. Its purpose is to demonstrate cloud architecture, retrieval-augmented generation (RAG), agent orchestration, machine learning, data engineering, security, testing, observability, and MLOps without using confidential data.
+> **Status:** Active development. Manual ingestion, Azure AI Search hybrid retrieval, and grounded answer generation work from local Python code. The deployed FastAPI container currently exposes only `/health`; the new RAG workflow has **not** been deployed as an API endpoint.
 
-> **Status:** Active development. The API, Docker, Azure deployment, Microsoft Foundry model deployments, and Azure AI Search index foundation are complete. Document ingestion, embeddings, hybrid retrieval, and RAG answer generation are the next milestone.
+> **Safety:** All equipment, readings, thresholds, and manuals are fictional. Generated answers are demonstrations, not instructions for operating real equipment.
 
-## Demo Scenario
+## What Works Now
 
-The finished application will act as a predictive-maintenance assistant for fictional industrial equipment.
+| Component | Current state |
+|---|---|
+| Python API | Packaged Python 3.12 FastAPI app with a typed `GET /health` endpoint |
+| Docker | Non-root container image with a health check |
+| Azure hosting | Development Container App, Container Registry, managed identity, and Log Analytics |
+| Microsoft Foundry | `gpt-5-mini` and `text-embedding-3-small` deployments |
+| Azure AI Search | Eight-field `equipment-manuals` index containing 13 synthetic manual chunks |
+| Manual ingestion | Markdown splitting, embedding generation, and upload to Azure AI Search |
+| Hybrid retrieval | Keyword and vector search combined with equipment-model filtering |
+| RAG generation | `gpt-5-mini` answers using retrieved manual excerpts and numbered references |
+| Automated checks | 15 passing tests, Ruff, and strict mypy at this checkpoint |
+| LangGraph | Dependency declared; workflow not implemented yet |
 
-A user will be able to provide:
+The RAG code has been tested through local Python calls to Azure. It is not yet available through the deployed Container App.
 
-- An equipment model, such as `PX-200`
-- A maintenance question
-- Current sensor readings, such as temperature, vibration, pressure, flow rate, and motor current
+## Demonstration Scenario
 
-The platform will then:
+A user asks about a fictional `PX-200` or `AX-100` pump. The application:
 
-1. Retrieve relevant instructions from the correct equipment manual using Azure AI Search.
-2. Send sensor readings to a machine-learning risk model through Azure Functions.
-3. Use a LangGraph workflow to coordinate retrieval, prediction, and decision logic.
-4. Use a model deployed through Microsoft Foundry to combine the evidence into a grounded response.
-5. Include supporting manual sections and the predicted failure risk.
-6. Require human approval before recommending consequential actions such as shutdowns or work orders.
+1. Converts the question into an embedding with `text-embedding-3-small`.
+2. Searches the correct equipment manual using both keywords and vector similarity.
+3. Passes the retrieved sections to `gpt-5-mini`.
+4. Returns a generated answer with numbered references and a list of retrieved sections.
 
-All manuals, sensor data, thresholds, and equipment models in this repository are synthetic and must not be used to operate real equipment.
+The manuals deliberately use different equipment models and operating ranges so that equipment-specific filtering can be demonstrated.
 
-## Implementation Status
+The question may contain sensor readings as text. A separately trained failure-risk model and structured sensor-reading API are **not implemented yet**.
 
-| Area | Status | Current result |
-|---|---|---|
-| Python application foundation | Complete | Packaged Python 3.12 FastAPI application |
-| Configuration | Complete | Typed settings loaded from defaults, `.env`, or environment variables |
-| Automated quality checks | Complete | pytest, Ruff, and strict mypy checks |
-| Containerization | Complete | Non-root Docker image with health monitoring |
-| Azure deployment foundation | Complete | Application deployed to Azure Container Apps |
-| Azure security foundation | Complete | Managed identity and role-based access control |
-| Microsoft Foundry resources | Complete | Foundry project and two model deployments created and tested |
-| Azure AI Search foundation | Complete | Live eight-field keyword/vector index created |
-| Synthetic manuals | Complete | PX-200 and AX-100 manuals added |
-| Document ingestion | Next | Chunking, embedding generation, and upload |
-| Hybrid retrieval | Planned | Keyword and vector search with metadata filtering |
-| RAG answer generation | Planned | Grounded answers with source information |
-| LangGraph workflow | Planned | Controlled orchestration across AI Search, ML, and tools |
-| Databricks and Delta Lake | Planned | Synthetic sensor-data engineering pipeline |
-| Azure Machine Learning and MLflow | Planned | Failure-risk model training, tracking, and registration |
-| Azure Functions | Planned | Serverless access to the registered ML model |
-| Evaluation and observability | Planned | RAG, model, workflow, and operational monitoring |
-| CI/CD and infrastructure as code | Planned | Azure DevOps, GitHub Actions, and Bicep |
+## Where Each Part Runs
 
-## What Works Today
+| Location | Role today |
+|---|---|
+| GitHub | Source code, tests, Docker configuration, and synthetic manuals |
+| Local Python environment | Manual ingestion, hybrid queries, and RAG answer generation |
+| Microsoft Foundry | Hosted chat and embedding model deployments |
+| Azure AI Search | Stores manual text, metadata, and 1,536-dimensional vectors |
+| Azure Container Apps | Runs the earlier health-enabled FastAPI container; currently `/health` only |
 
-### Application foundation
+Closing VS Code does not remove Azure resources. The development Container App is configured with zero minimum replicas and one maximum replica.
 
-- Python 3.12 package managed through `pyproject.toml`
-- FastAPI application served by Uvicorn
-- Generated OpenAPI specification and Swagger documentation
-- Typed `GET /health` endpoint
-- Environment-based configuration using Pydantic Settings
-- Configuration through `AI_PLATFORM_*` environment variables
-- Automated tests using pytest
-- Static type checking using strict mypy
-- Linting and formatting using Ruff
-
-The current health endpoint confirms that the API process is running. It does not yet test connections to Azure AI Search, Microsoft Foundry, or future downstream services.
-
-### Docker foundation
-
-- Containerized Python application
-- Non-root Linux user with UID `10001`
-- Port `8000` exposed for the API
-- Docker health check calling `/health`
-- Small Python 3.12 slim base image
-- Unnecessary local files excluded through `.dockerignore`
-
-### Azure hosting foundation
-
-The current development environment was provisioned and verified manually through Azure CLI and Azure Portal.
-
-It includes:
-
-- Private Azure Container Registry
-- Azure Container Apps Consumption environment
-- Public HTTPS ingress for the development API
-- Scale-to-zero configuration
-- Maximum of one development replica
-- User-assigned managed identity
-- Least-privilege `AcrPull` role assignment
-- Centralized logging through Azure Log Analytics
-- Azure budget monitoring and resource tagging
-
-Infrastructure as code and automated deployment pipelines have not been added yet.
-
-### Microsoft Foundry foundation
-
-The Azure development environment includes:
-
-- A Microsoft Foundry resource
-- A Foundry project
-- A `gpt-5-mini` chat-model deployment
-- A `text-embedding-3-small` embedding deployment
-- Successful chat and embedding tests through Azure
-- Microsoft Entra ID access for development
-
-The embedding deployment returns vectors with 1,536 dimensions.
-
-The application does not call these model deployments yet. Application integration begins during document ingestion and RAG implementation.
-
-### Azure AI Search foundation
-
-The repository contains:
-
-- An eight-field search-index schema
-- Searchable text fields for keyword retrieval
-- A 1,536-dimensional vector field
-- HNSW approximate-nearest-neighbour configuration
-- Cosine vector similarity
-- Metadata fields for equipment-specific filtering
-- A Python utility that creates or updates the Azure AI Search index
-- Passwordless authentication through `DefaultAzureCredential`
-- Automated tests for the index structure
-
-The live `equipment-manuals` index has been created successfully in Azure AI Search.
-
-The index is currently empty. Document chunking, embedding generation, upload, and querying are the next implementation steps.
-
-## Current Architecture
-
-The following components are currently implemented or manually provisioned:
-
-```mermaid
-flowchart LR
-    DEV[Local Development] --> CHECKS[pytest, Ruff, and mypy]
-    CHECKS --> IMAGE[Docker Image]
-    IMAGE --> ACR[Azure Container Registry]
-    ACR --> ACA[Azure Container App]
-    ACA --> API[FastAPI and Uvicorn]
-    API --> HEALTH[GET /health]
-
-    ID[User-Assigned Managed Identity] -->|AcrPull| ACR
-    ACA -->|Uses identity| ID
-    ACA --> LOGS[Azure Log Analytics]
-
-    DEV -->|Entra ID| FOUNDRY[Microsoft Foundry]
-    FOUNDRY --> CHAT[gpt-5-mini]
-    FOUNDRY --> EMBED[text-embedding-3-small]
-
-    DEV -->|DefaultAzureCredential| SEARCH[Azure AI Search Index]
-    MANUALS[Synthetic Markdown Manuals] -. Next: chunk, embed, and upload .-> SEARCH
-```
-
-The Container App currently runs the health-enabled FastAPI foundation. It is not yet connected to Foundry or Azure AI Search.
-
-## Target Architecture
-
-```mermaid
-flowchart LR
-    USER[User or API Client] --> API[FastAPI Service]
-    API --> GRAPH[LangGraph Workflow]
-
-    GRAPH --> SEARCH[Azure AI Search]
-    GRAPH --> FUNCTION[Azure Function]
-    GRAPH --> FOUNDRY[Microsoft Foundry]
-    GRAPH --> REVIEW[Human Approval]
-
-    SEARCH -->|Manual evidence| GRAPH
-    FUNCTION -->|Failure-risk prediction| GRAPH
-    FOUNDRY -->|Grounded response| GRAPH
-
-    RAW[Synthetic Sensor Data] --> DBX[Azure Databricks]
-    DBX --> DELTA[Delta Lake]
-
-    DELTA --> INGEST[Document and Data Ingestion]
-    INGEST --> SEARCH
-
-    DELTA --> AML[Azure Machine Learning]
-    AML --> MLFLOW[MLflow Tracking and Model Registry]
-    MLFLOW --> FUNCTION
-
-    API --> OBS[Application Insights and OpenTelemetry]
-
-    GITHUB[GitHub Repository] --> CICD[Azure DevOps and GitHub Actions]
-    CICD --> ACR[Azure Container Registry]
-    ACR --> ACA[Azure Container Apps]
-    ACA --> API
-```
-
-## Planned End-to-End Request
-
-An example finished request might contain:
-
-```json
-{
-  "equipment_model": "PX-200",
-  "question": "Should this pump continue operating?",
-  "sensor_readings": {
-    "temperature_c": 96,
-    "vibration_mm_s": 7.8,
-    "pressure_bar": 3.2,
-    "flow_rate_l_min": 112,
-    "motor_current_a": 17.5,
-    "hours_since_maintenance": 2100
-  }
-}
-```
-
-The planned LangGraph workflow will:
+## Current RAG Flow
 
 ```text
-Validate the request
-    → retrieve PX-200 manual sections
-    → request a failure-risk prediction
-    → compare the retrieved instructions with the prediction
-    → generate a grounded response
-    → add sources and risk information
-    → request human review when necessary
+Synthetic Markdown manuals
+    → LangChain text splitters
+    → Foundry embedding deployment
+    → Azure AI Search index
+
+Question + equipment model
+    → question embedding
+    → Azure AI Search hybrid query
+    → matching manual sections
+    → Foundry gpt-5-mini deployment
+    → generated answer + retrieved-source list
 ```
 
-The large language model will explain the evidence. It will not replace the predictive model, invent operating thresholds, or automatically authorize physical actions.
-
-## Azure AI Search Index
-
-The `equipment-manuals` index currently contains this schema:
-
-| Field | Purpose |
-|---|---|
-| `id` | Unique identifier for each future document chunk |
-| `equipment_model` | Equipment identifier used for filtering and faceting |
-| `document_title` | Name of the source manual |
-| `section_title` | Heading of the manual section |
-| `content` | Searchable section text |
-| `source` | Original source path or document reference |
-| `chunk_order` | Position of the chunk within the document |
-| `content_vector` | Hidden 1,536-dimensional embedding used for vector search |
-
-The design supports three complementary retrieval methods:
-
-- Keyword search for exact technical words, model numbers, and measurements
-- Vector search for semantically similar questions and instructions
-- Metadata filtering to prevent instructions for one equipment model from being mixed with another
-
-The retrieval implementation will combine keyword and vector results into hybrid search.
-
-## Synthetic Manuals
-
-Two fictional manuals are currently included:
-
-### PX-200
-
-A fictional centrifugal process pump with guidance covering:
-
-- Normal operating ranges
-- Abnormal vibration
-- High temperature
-- Low pressure and flow
-- High motor current
-- Maintenance prioritization
-- Human approval and lockout/tagout considerations
-
-### AX-100
-
-A fictional auxiliary pump with intentionally different thresholds.
-
-The second manual helps test whether retrieval correctly filters by equipment model instead of returning similar but incorrect instructions from another machine.
-
-## Azure Resources
-
-| Resource | Name | Purpose |
-|---|---|---|
-| Resource group | `rg-enterprise-ai-platform-dev` | Organizes development resources, access, tags, and costs |
-| Container registry | `razavisraiplatform` | Stores private application images |
-| Managed identity | `id-enterprise-ai-platform-dev` | Allows passwordless container-image retrieval |
-| Log Analytics workspace | `log-enterprise-ai-platform-dev` | Stores application and Azure system logs |
-| Container Apps environment | `cae-enterprise-ai-platform-dev` | Provides the Container Apps compute, networking, and logging boundary |
-| Container App | `ca-enterprise-ai-api-dev` | Runs the FastAPI container and exposes HTTPS ingress |
-| Foundry resource | `aif-razavisr-platform-dev` | Hosts AI model deployments |
-| Foundry project | `enterprise-ai-platform-dev` | Organizes development work in Microsoft Foundry |
-| Chat deployment | `gpt-5-mini` | Generates the future grounded assistant response |
-| Embedding deployment | `text-embedding-3-small` | Converts queries and manual chunks into vectors |
-| AI Search service | `srch-razavisr-platform-dev` | Hosts searchable enterprise knowledge indexes |
-| AI Search index | `equipment-manuals` | Stores future manual chunks, metadata, and embeddings |
-
-These resources currently represent a manually provisioned development environment. Bicep will later make the infrastructure reproducible.
+The implementation uses LangChain’s text-splitting utilities. LangGraph is listed as a dependency for the next milestone, but it is not yet orchestrating this flow.
 
 ## Repository Structure
 
@@ -290,110 +72,74 @@ These resources currently represent a manually provisioned development environme
 azure-enterprise-ai-platform/
 ├── data/
 │   └── manuals/
-│       ├── ax-100/
-│       │   └── operation-and-maintenance.md
-│       └── px-200/
-│           └── operation-and-maintenance.md
-├── src/
-│   └── enterprise_ai_platform/
-│       ├── rag/
-│       │   ├── __init__.py
-│       │   ├── create_index.py
-│       │   └── index_schema.py
-│       ├── __init__.py
-│       ├── config.py
-│       └── main.py
+│       ├── ax-100/operation-and-maintenance.md
+│       └── px-200/operation-and-maintenance.md
+├── src/enterprise_ai_platform/
+│   ├── config.py
+│   ├── main.py
+│   └── rag/
+│       ├── create_index.py
+│       ├── embeddings.py
+│       ├── generation.py
+│       ├── index_schema.py
+│       ├── manual_loader.py
+│       ├── retrieval.py
+│       └── upload_manuals.py
 ├── tests/
 │   ├── test_config.py
+│   ├── test_embeddings.py
 │   ├── test_health.py
-│   └── test_index_schema.py
-├── .dockerignore
+│   ├── test_index_schema.py
+│   ├── test_manual_loader.py
+│   └── test_retrieval.py
 ├── .env.example
+├── .dockerignore
 ├── .gitignore
 ├── Dockerfile
 ├── pyproject.toml
 └── README.md
 ```
 
-## Prerequisites
+## Set Up Locally
 
-The base application requires:
+Requirements:
 
-- Git
 - Python 3.12
+- Git
+- An Azure subscription and Azure CLI for live Azure operations
+- Permission to use the relevant Foundry deployments and Azure AI Search index
+- Docker Desktop only if testing the container locally
 
-Docker testing additionally requires:
-
-- Docker Desktop
-
-Azure operations additionally require:
-
-- An Azure subscription
-- Azure CLI
-- Access to the Azure resources
-- Appropriate Azure role assignments
-
-## Run Locally
-
-### 1. Clone the repository
+Clone and install:
 
 ```bash
 git clone https://github.com/Razavisr/azure-enterprise-ai-platform.git
 cd azure-enterprise-ai-platform
-```
-
-### 2. Create a virtual environment
-
-```bash
 python3.12 -m venv .venv
-```
-
-Activate it on macOS or Linux:
-
-```bash
 source .venv/bin/activate
+python -m pip install -e '.[dev]'
 ```
 
-The virtual environment keeps this project’s Python interpreter and dependencies separate from other projects.
+The virtual environment isolates this project’s Python packages from other projects.
 
-### 3. Install the project
-
-```bash
-python -m pip install --editable ".[dev]"
-```
-
-`--editable` connects the installed package to the source directory, so source-code changes are immediately available.
-
-`.[dev]` installs the application dependencies and development tools.
-
-### 4. Create local configuration
+Create your private configuration file:
 
 ```bash
 cp .env.example .env
 ```
 
-The example configuration contains:
+Edit `.env` to use your own Azure OpenAI-compatible Foundry endpoint and Azure AI Search endpoint. Keep the deployment names aligned with your Azure resources. `.env` is excluded from Git; never commit credentials or access tokens.
 
-```dotenv
-AI_PLATFORM_APP_NAME="Azure Enterprise AI Platform"
-AI_PLATFORM_SERVICE_NAME="azure-enterprise-ai-platform"
-AI_PLATFORM_APP_VERSION="0.1.0"
-AI_PLATFORM_ENVIRONMENT="local"
-AI_PLATFORM_LOG_LEVEL="INFO"
+Sign in for local Azure development:
 
-AI_PLATFORM_AZURE_OPENAI_ENDPOINT="https://your-foundry-resource.openai.azure.com"
-AI_PLATFORM_AZURE_OPENAI_CHAT_DEPLOYMENT="gpt-5-mini"
-AI_PLATFORM_AZURE_OPENAI_EMBEDDING_DEPLOYMENT="text-embedding-3-small"
-
-AI_PLATFORM_AZURE_SEARCH_ENDPOINT="https://your-search-service.search.windows.net"
-AI_PLATFORM_AZURE_SEARCH_INDEX_NAME="equipment-manuals"
+```bash
+az login
+az account show --output table
 ```
 
-Replace the placeholder endpoints in the private `.env` file with the endpoints for your Azure resources.
+The Python integration uses Microsoft Entra authentication through `DefaultAzureCredential`. The `OpenAI` Python library is configured to call the **Azure** endpoint; this project does not require an OpenAI API key.
 
-The `.env` file is excluded from Git. Never commit credentials, API keys, access tokens, or private configuration.
-
-### 5. Start the API
+## Run the API
 
 ```bash
 python -m uvicorn enterprise_ai_platform.main:app --reload
@@ -401,308 +147,92 @@ python -m uvicorn enterprise_ai_platform.main:app --reload
 
 Open:
 
-- API documentation: http://127.0.0.1:8000/docs
-- Health endpoint: http://127.0.0.1:8000/health
+- Health check: `http://127.0.0.1:8000/health`
+- API documentation: `http://127.0.0.1:8000/docs`
 
-Expected health response:
+At this checkpoint, the API exposes only `/health`. The RAG functions are called from Python, not from an API route.
 
-```json
-{
-  "status": "healthy",
-  "service": "azure-enterprise-ai-platform",
-  "version": "0.1.0"
-}
-```
+## Create the Search Index and Upload Manuals
 
-## Run Quality Checks
-
-Run linting:
-
-```bash
-ruff check .
-```
-
-Check formatting:
-
-```bash
-ruff format --check .
-```
-
-Run strict static type checking:
-
-```bash
-mypy src tests
-```
-
-Run the automated test suite:
-
-```bash
-pytest -v
-```
-
-At this project checkpoint, all six tests pass.
-
-To include test coverage:
-
-```bash
-pytest --cov=enterprise_ai_platform --cov-report=term-missing
-```
-
-The tests currently cover:
-
-- Safe configuration defaults
-- Environment-variable overrides
-- Invalid environment rejection
-- Azure service configuration
-- Health-endpoint behaviour
-- Azure AI Search index structure
-
-The Azure index-creation utility is currently verified manually against Azure rather than through an automated integration test.
-
-## Create or Update the Azure AI Search Index
-
-Sign in through Azure CLI:
-
-```bash
-az login
-```
-
-Confirm the active subscription:
-
-```bash
-az account show --output table
-```
-
-`DefaultAzureCredential` can use the Azure CLI login for local development. This allows the Python utility to access Azure without storing an Azure AI Search administrator key.
-
-Create or update the index:
+These commands make live Azure requests. Use a subscription and resources you are authorized to access.
 
 ```bash
 python -m enterprise_ai_platform.rag.create_index
+python -m enterprise_ai_platform.rag.upload_manuals
 ```
 
-Expected output:
+The current synthetic manuals produce 13 chunks: five for `AX-100` and eight for `PX-200`. Each chunk has text, source metadata, and an embedding in the `equipment-manuals` index.
 
-```text
-Azure AI Search index 'equipment-manuals' is ready with 8 fields.
-```
+The index has eight fields: `id`, `equipment_model`, `document_title`, `section_title`, `content`, `source`, `chunk_order`, and `content_vector`. The vector field has 1,536 dimensions and is not returned in ordinary search results.
 
-Running this command again updates the index definition rather than creating a duplicate index.
+## Try the RAG Flow
 
-The signed-in user requires permission to manage the search index. The development environment uses Azure role-based access control for this access.
-
-## Run with Docker
-
-### Build the image
+With `.env` configured and Azure CLI signed in:
 
 ```bash
-docker build \
-  --tag azure-enterprise-ai-platform:0.1.0 \
-  .
+python -c "from enterprise_ai_platform.rag.retrieval import search_manuals; from enterprise_ai_platform.rag.generation import generate_grounded_answer; q = 'For a PX-200 pump with vibration of 7.8 mm/s and casing temperature of 96 C, what should we inspect?'; hits = search_manuals(q, 'PX-200', top=5); print(generate_grounded_answer(q, hits))"
 ```
 
-### Start the container
+This performs a live embedding request, a hybrid Azure AI Search query, and a `gpt-5-mini` request. It can consume Azure credits.
+
+Hybrid search combines keyword matching with vector similarity. The `equipment_model` filter prevents `AX-100` sections from being returned for a `PX-200` question. Search scores rank results; they are **not confidence percentages** or failure probabilities.
+
+## Run Quality Checks
 
 ```bash
-docker run \
-  --name azure-enterprise-ai-platform-local \
-  --publish 8000:8000 \
-  --rm \
-  azure-enterprise-ai-platform:0.1.0
+ruff check .
+ruff format --check .
+mypy src tests
+pytest -v
 ```
 
-Verify the container:
+At this checkpoint, 15 automated tests pass. They cover configuration, the health endpoint, index structure, manual loading, embedding input checks, and retrieval input checks.
 
-```bash
-curl http://127.0.0.1:8000/health
-```
+These tests do **not** make live Azure calls. Manual live checks have confirmed document upload, hybrid retrieval, and answer generation. Generation quality and citation accuracy are not yet automatically tested.
 
-Inspect its status:
+## Azure Development Resources
 
-```bash
-docker ps
-```
+The development environment has been provisioned manually through Azure CLI and the Azure Portal:
 
-View its logs:
+| Resource | Name |
+|---|---|
+| Resource group | `rg-enterprise-ai-platform-dev` |
+| Azure Container Registry | `razavisraiplatform` |
+| Managed identity | `id-enterprise-ai-platform-dev` |
+| Log Analytics workspace | `log-enterprise-ai-platform-dev` |
+| Container Apps environment | `cae-enterprise-ai-platform-dev` |
+| Container App | `ca-enterprise-ai-api-dev` |
+| Foundry resource | `aif-razavisr-platform-dev` |
+| Foundry project | `enterprise-ai-platform-dev` |
+| Chat deployment | `gpt-5-mini` |
+| Embedding deployment | `text-embedding-3-small` |
+| Azure AI Search service | `srch-razavisr-platform-dev` |
+| Search index | `equipment-manuals` |
 
-```bash
-docker logs azure-enterprise-ai-platform-local
-```
+Infrastructure as code and automated deployment have not been added. The Container App still runs the health-only API version; pushing this repository to GitHub does **not** deploy the new RAG code.
 
-The Docker health check calls `/health` every 30 seconds while the container is running.
+## Security and Evaluation Boundaries
 
-The container runs as a non-root user. Because `--rm` is used, Docker removes the container after it is stopped. The image remains available for future containers.
+Current measures include synthetic data, environment-based configuration, Microsoft Entra authentication for local Azure calls, a private container registry, managed identity for container-image pulls, and non-root Docker execution.
 
-## Verify the Azure Deployment
+Important unfinished work:
 
-Sign in and confirm the active subscription:
+- The model is prompted to cite evidence, but citations and factual claims are **not programmatically verified**.
+- “Retrieved sources” lists all retrieved sections, including sections the answer may not cite.
+- A relevant safety section may be absent from the top search results.
+- No human-review gate, API authentication, or production authorization policy is implemented.
+- No automated Azure integration or RAG-quality evaluation suite exists.
+- The public Container App does not expose a RAG endpoint.
 
-```bash
-az login
-az account show --output table
-```
+The fictional manuals and generated answers must not be used for real maintenance or safety decisions.
 
-Retrieve the Container App hostname:
+## Next Milestones
 
-```bash
-CONTAINER_APP_FQDN=$(az containerapp show \
-  --name ca-enterprise-ai-api-dev \
-  --resource-group rg-enterprise-ai-platform-dev \
-  --query properties.configuration.ingress.fqdn \
-  --output tsv)
-```
+1. Build a LangGraph workflow around retrieval and generation, then expose it through a typed FastAPI route.
+2. Add evaluation cases, stronger source handling, and a human-review path for consequential recommendations.
+3. Engineer synthetic sensor data with Azure Databricks and Delta Lake.
+4. Train and track a small failure-risk model with Azure Machine Learning and MLflow.
+5. Call that model through Azure Functions and integrate its prediction into the workflow.
+6. Add observability, reproducible infrastructure, and CI/CD.
 
-Call the deployed health endpoint:
-
-```bash
-curl "https://${CONTAINER_APP_FQDN}/health"
-```
-
-Open the deployed Swagger documentation using:
-
-```text
-https://<container-app-hostname>/docs
-```
-
-## View Azure Logs
-
-View recent application console logs:
-
-```bash
-az containerapp logs show \
-  --name ca-enterprise-ai-api-dev \
-  --resource-group rg-enterprise-ai-platform-dev \
-  --type console \
-  --tail 30 \
-  --format text
-```
-
-View Azure system logs:
-
-```bash
-az containerapp logs show \
-  --name ca-enterprise-ai-api-dev \
-  --resource-group rg-enterprise-ai-platform-dev \
-  --type system \
-  --tail 30 \
-  --format text
-```
-
-Historical application logs can be queried in the Log Analytics workspace:
-
-```kusto
-ContainerAppConsoleLogs_CL
-| where ContainerAppName_s == "ca-enterprise-ai-api-dev"
-| order by TimeGenerated desc
-| take 50
-```
-
-Historical Azure system logs can be queried with:
-
-```kusto
-ContainerAppSystemLogs_CL
-| where ContainerAppName_s == "ca-enterprise-ai-api-dev"
-| order by TimeGenerated desc
-| take 50
-```
-
-## Security Decisions
-
-Current security measures include:
-
-- Synthetic data instead of confidential operational or customer data
-- Private Azure Container Registry
-- Disabled registry administrator credentials
-- User-assigned managed identity for container-image access
-- Least-privilege `AcrPull` access
-- Microsoft Entra ID authentication for local Azure AI Search access
-- Non-root Docker execution
-- Environment-based configuration
-- `.env`, credentials, tokens, keys, and local Azure state excluded from Git
-
-Planned security improvements include:
-
-- Managed identity access from the application to Foundry and Azure AI Search
-- Azure Key Vault for any required secrets
-- API authentication and authorization
-- Private endpoints for production Azure services
-- Network restrictions
-- Automated dependency and container scanning
-- Human approval before consequential agent actions
-
-## Cost Controls
-
-The development environment uses:
-
-- Azure resource tags
-- Azure budget notifications
-- Azure Container Apps Consumption workload profile
-- Zero minimum Container App replicas
-- Maximum of one development replica
-- Free Azure AI Search tier
-- Log Analytics daily ingestion limits
-- Token-based Foundry model usage
-
-Future controls will include:
-
-- Automatic Databricks cluster termination
-- Small development compute sizes
-- Azure Machine Learning compute scale-down
-- No continuously running Azure ML endpoint
-- Removal of temporary deployment resources after demonstrations
-
-Azure Container Registry remains provisioned and may continue to have a small storage/service cost while it exists.
-
-## Current Limitations
-
-At the current checkpoint:
-
-- The FastAPI application exposes only `/health`.
-- The health endpoint checks process liveness, not downstream Azure services.
-- The Azure AI Search index exists but contains no documents yet.
-- Document chunking and embedding generation are not implemented yet.
-- The application does not query Azure AI Search yet.
-- The application does not call the Foundry model deployments yet.
-- RAG responses and citations are not implemented yet.
-- LangGraph, Azure Functions, Databricks, Delta Lake, Azure ML, and MLflow are planned.
-- Azure infrastructure was provisioned manually and is not yet represented as Bicep.
-- CI/CD workflows have not been added.
-- API authentication has not been added.
-- The automated tests are unit tests, not Azure integration tests.
-
-These boundaries are documented intentionally so that each future milestone can be demonstrated and verified separately.
-
-## Development Roadmap
-
-| Phase | Deliverable | Status |
-|---|---|---|
-| 1 | FastAPI, typed configuration, automated tests, and Docker foundation | Complete |
-| 2 | Azure Container Registry, managed identity, Container Apps, and Log Analytics | Complete |
-| 3 | Microsoft Foundry project, model deployments, Azure AI Search service, and index schema | Complete |
-| 4 | Manual chunking, embedding generation, document upload, and hybrid retrieval | Next |
-| 5 | RAG API and LangGraph workflow with evidence and human-review routing | Planned |
-| 6 | Databricks and Delta Lake synthetic sensor-data pipeline | Planned |
-| 7 | Azure Machine Learning model training, MLflow tracking, and model registration | Planned |
-| 8 | Azure Function for failure-risk prediction | Planned |
-| 9 | Integrated AI Search, ML prediction, and Foundry response generation | Planned |
-| 10 | Evaluation, observability, Bicep, Azure DevOps, and GitHub Actions | Planned |
-
-## Engineering Goals
-
-By completion, this project will demonstrate:
-
-- Production-minded Python API development
-- Secure containerized deployment on Azure
-- Passwordless Azure authentication
-- Enterprise search and retrieval-augmented generation
-- Equipment-specific metadata filtering
-- Controlled LangGraph agent workflows
-- Traditional machine-learning lifecycle management
-- Databricks and Delta Lake data engineering
-- Serverless model access through Azure Functions
-- Human review for consequential decisions
-- Automated testing and evaluation
-- Cloud logging and observability
-- Infrastructure as code
-- CI/CD and MLOps practices
-- Security, governance, and cost awareness
+The project is intentionally incremental: each implemented component is kept distinct from planned work.
