@@ -1,79 +1,98 @@
 # Azure Enterprise AI Platform
 
-## What This Platform Does
+A working Azure-hosted demonstration that combines a machine-learning score with equipment-manual guidance. All equipment, manuals, readings, and failure labels in this project are synthetic.
 
-This is a decision-support demonstration for **fictional industrial equipment**. Imagine a user reporting that a PX-200 pump has vibration of 7.8 mm/s and casing temperature of 96°C, then asking:
+## What the platform does
 
-> “Is this pump at risk of failure, and what should I inspect?”
+Imagine a PX-200 pump reporting a casing temperature of 96°C, vibration of 7.8 mm/s, and discharge pressure of 4.0 bar. A user asks what to inspect and what action to take.
 
-The platform is being built to combine two kinds of evidence:
+The `POST /diagnose` API returns two separate results:
 
-1. A **failure score** from a machine-learning model trained on synthetic sensor readings.
-2. **Manual-grounded guidance** retrieved from the correct equipment manual and cited in an answer.
+- A score from a classifier trained on synthetic sensor readings. In the deployed example, the score was approximately `0.90`, above the demonstration threshold of `0.50`, so the reading was flagged for review.
+- An answer based on retrieved PX-200 manual sections. The answer cites the sections it used and, for these example readings, reports the manual’s controlled-shutdown and maintenance-inspection guidance.
 
-Both parts now work, but **separately**. The complete six-feature PX-200 reading shown below scores about 0.90 with the downloaded Azure-trained model and is flagged for review. The local RAG API can retrieve PX-200 manual sections and answer the inspection question with references. An Azure Function and an expanded LangGraph workflow will connect these parts later.
+**This is not real-world maintenance advice.** The score is not a calibrated probability of failure, and the fictional manual must not be used to operate equipment.
 
-> **Safety:** Equipment, readings, labels, manuals, and thresholds in this project are synthetic. A model score is not a validated real-world failure probability, and generated answers are not operating or maintenance advice.
+## How it works
 
-## Current Status
+Training and document preparation happen before a user sends a request:
 
-| Component | What works now |
+```text
+Synthetic sensor CSV → Azure ML data asset → Azure ML training job
+                     → MLflow metrics → registered model (version 1)
+                     → trusted model file downloaded and bundled into Docker
+
+Synthetic manuals → LangChain text splitting → Foundry embeddings
+                  → Azure AI Search index
+```
+
+At request time, the deployed FastAPI application runs a LangGraph workflow:
+
+```text
+POST /diagnose
+  → validate the question and six PX-200 sensor readings
+  → predict: score the reading with the model inside the container
+  → retrieve: search PX-200 manual sections using keywords and vectors
+  → generate: ask Foundry's gpt-5-mini to answer from those sections
+  → return {prediction, answer}
+```
+
+The model score and the manual answer remain distinct. The answer generator receives the question, sensor readings, and retrieved manual excerpts; it **does not use the model score as evidence** for a manual recommendation.
+
+The cloud application uses a user-assigned managed identity to access Foundry and Azure AI Search. No Azure API keys are stored in the repository or Docker image.
+
+## Current implementation
+
+| Component | Role |
 |---|---|
-| FastAPI | Local `GET /health` and `POST /ask` endpoints |
-| LangGraph | Two-step manual retrieval and answer-generation workflow |
-| LangChain | Splits manuals into searchable sections |
-| Microsoft Foundry | Deployed `gpt-5-mini` and `text-embedding-3-small` models |
-| Azure AI Search | Hybrid keyword/vector search over 13 synthetic manual sections |
-| Azure Machine Learning | Completed a cloud training job on a versioned synthetic CSV asset |
-| MLflow | Recorded the cloud training metrics |
-| Model registry | Registered `px200-failure-model`, version 1 |
-| Local inference | Validates a PX-200 reading and scores it using the downloaded Azure-trained model |
-| Docker and Azure Container Apps | An earlier **health-only** application image was deployed; the newer RAG and ML code is not deployed there |
-| Quality checks | 30 offline tests pass; Ruff and strict mypy pass |
-| Azure Functions | Planned for model inference |
-| Databricks and Delta Lake | Deferred; the current training job uses the prepared CSV directly |
+| FastAPI | Exposes `/health`, `/ask`, `/predict`, and `/diagnose` |
+| LangGraph | Orchestrates retrieval and generation, and the combined diagnosis workflow |
+| LangChain text splitters | Divides the synthetic manuals into searchable sections |
+| Microsoft Foundry | Hosts `gpt-5-mini` and `text-embedding-3-small` deployments |
+| Azure AI Search | Stores 13 manual sections and runs equipment-filtered hybrid keyword/vector search |
+| Azure Machine Learning | Runs training on a versioned synthetic CSV data asset |
+| MLflow and Azure ML model registry | Record training metrics and store model version 1 |
+| Azure Container Registry and Container Apps | Store and run the `diagnose-v1` Docker image |
 
-There is **no combined risk-and-manual API yet**. In particular, `POST /ask` currently answers from manual excerpts; it does not call the ML model.
+The model was trained and registered in Azure ML, then downloaded and copied into the Docker image. **Prediction runs inside the Container App; this project does not use an Azure ML online endpoint.** Azure Functions is not part of the current design.
 
-## How the Pieces Fit Together
+The deployed Container App has been tested with `GET /health`, `POST /predict`, and `POST /diagnose`. The current local checks pass: **39 offline tests**, Ruff, and strict mypy.
 
-Training happens separately from user requests:
+## API
 
-```text
-Synthetic PX-200 sensor CSV
-    → Azure ML data asset, version 1
-    → Azure ML CPU training job
-    → MLflow metrics and saved joblib bundle
-    → registered Azure ML model, version 1
-    → downloaded trusted copy for local inference
+| Route | Input | Output |
+|---|---|---|
+| `GET /health` | None | Service status |
+| `POST /ask` | Question and equipment model | Manual-grounded answer |
+| `POST /predict` | Six PX-200 sensor readings | Model score and review flag |
+| `POST /diagnose` | Question and six PX-200 readings | Prediction plus manual-grounded answer |
+
+`/ask` can retrieve sections for the fictional PX-200 and AX-100 manuals. The trained classifier currently supports **PX-200 only**.
+
+Example `/diagnose` request:
+
+```json
+{
+  "question": "For this PX-200 pump, what should we inspect and what action should we take?",
+  "reading": {
+    "equipment_model": "PX-200",
+    "casing_temperature_c": 96.0,
+    "vibration_mm_s": 7.8,
+    "discharge_pressure_bar": 4.0,
+    "flow_lpm": 150.0,
+    "motor_current_a": 16.0,
+    "hours_since_maintenance": 800.0
+  }
+}
 ```
 
-The current question-answering path is:
+The response contains a `prediction` object and an `answer` string with retrieved source references. Search ranking scores are not the same as the ML failure score.
 
-```text
-Question + equipment model
-    → local FastAPI POST /ask
-    → LangGraph retrieves relevant manual sections
-    → Azure AI Search hybrid search, filtered by equipment model
-    → gpt-5-mini generates an answer using those sections
-    → answer with manual references
-```
+## Data and model
 
-The planned integration is:
+The repository includes two fictional manuals and 800 synthetic PX-200 sensor rows. The classifier uses casing temperature, vibration, discharge pressure, flow, motor current, and hours since maintenance to predict the synthetic `failure_within_7_days` label.
 
-```text
-Structured sensor reading → Azure Function → model score
-Question + equipment model → Azure AI Search → cited manual guidance
-Both results → LangGraph → response that keeps prediction and manual evidence distinct
-```
-
-The search score ranks manual sections; it is **not** the model’s failure score. The manual also does not prove that a model prediction is correct.
-
-## Demonstration Data and Model
-
-The repository contains fictional manuals for PX-200 and AX-100 equipment, plus 800 synthetic PX-200 sensor rows. The training script uses six numeric features: casing temperature, vibration, discharge pressure, flow, motor current, and hours since maintenance. The target label is `failure_within_7_days`.
-
-The model is a scaled logistic-regression classifier, compared with a dummy baseline. A stratified split used 600 rows for training and 200 for testing. The Azure ML run recorded:
+Training uses a standard scaler and logistic regression, compared with a dummy baseline. A stratified split used 600 rows for training and 200 for testing. The Azure ML run recorded:
 
 | Metric | Synthetic-data result |
 |---|---:|
@@ -83,34 +102,9 @@ The model is a scaled logistic-regression classifier, compared with a dummy base
 | Precision at threshold 0.5 | 0.708 |
 | Recall at threshold 0.5 | 0.447 |
 
-These numbers demonstrate the pipeline, **not real equipment reliability**. In particular, recall of `0.447` means the model missed many simulated failures in the test set. The score has not been calibrated or validated for operational decisions.
+These are demonstration metrics, not evidence of real equipment reliability. Recall of `0.447` means the model missed many simulated failures in its test set.
 
-`azureml-train-job.yml` defines the cloud job. It reads the versioned `px200-sensor-readings:1` data asset, uses one `Standard_D2_v2` instance, and uploads a `custom_model` output. Registering that job output as `px200-failure-model:1` was a separate Azure ML step.
-
-## Repository Layout
-
-```text
-azure-enterprise-ai-platform/
-├── azureml-train-job.yml
-├── data/
-│   ├── manuals/
-│   └── sensors/px200_sensor_readings.csv
-├── training/train.py
-├── src/enterprise_ai_platform/
-│   ├── config.py
-│   ├── main.py
-│   ├── workflow.py
-│   ├── ml/inference.py
-│   └── rag/
-├── tests/
-├── Dockerfile
-├── pyproject.toml
-└── README.md
-```
-
-Generated model files, local MLflow runs, `.venv`, and `.env` are excluded from Git. The repository contains the code and synthetic input data needed to understand or rerun the work, not private Azure credentials or the downloaded model binary.
-
-## Set Up Locally
+## Run it locally
 
 Use Python 3.12:
 
@@ -122,81 +116,7 @@ source .venv/bin/activate
 python -m pip install -e '.[dev,ml]'
 ```
 
-The tests and local model training do not need an Azure account. To use the live RAG API, you also need access to your own Microsoft Foundry deployments and Azure AI Search index. Copy `.env.example` to `.env`, fill in your endpoints, and sign in with `az login`. Never commit `.env`, keys, tokens, or connection strings.
-
-## Run the Local RAG API
-
-```bash
-python -m uvicorn enterprise_ai_platform.main:app --reload
-```
-
-Open `http://127.0.0.1:8000/docs` and try `POST /ask`:
-
-```json
-{
-  "question": "For a PX-200 pump with vibration of 7.8 mm/s and casing temperature of 96 C, what should we inspect?",
-  "equipment_model": "PX-200"
-}
-```
-
-The response contains an `answer` with manual references. It does **not** contain an ML score. Each live request may make billable Azure Search and Foundry calls. The endpoint currently has no authentication or usage controls and should not be deployed publicly as-is.
-
-To prepare a search index in an Azure environment where you have appropriate access:
-
-```bash
-python -m enterprise_ai_platform.rag.create_index
-python -m enterprise_ai_platform.rag.upload_manuals
-```
-
-These commands make live Azure requests.
-
-## Train and Score Locally
-
-To train from the synthetic CSV without Azure:
-
-```bash
-MLFLOW_ALLOW_FILE_STORE=true MLFLOW_TRACKING_URI=./mlruns \
-python training/train.py --data data/sensors/px200_sensor_readings.csv
-```
-
-This creates a local model at `artifacts/px200_failure_model.joblib`. The MLflow file-store setting is for this disposable local demonstration.
-
-To use the **registered Azure-trained model** instead, download version 1 from an Azure ML workspace you can access:
-
-```bash
-az ml model download \
-  --name px200-failure-model \
-  --version 1 \
-  --download-path artifacts \
-  --resource-group <YOUR_RESOURCE_GROUP> \
-  --workspace-name <YOUR_WORKSPACE>
-```
-
-That places the registered file under `artifacts/px200-failure-model/`. Only load model files from a source you trust; joblib deserialization can execute code.
-
-Example inference with the downloaded Azure-trained model:
-
-```python
-from pathlib import Path
-
-from enterprise_ai_platform.ml.inference import PX200Predictor, PX200Reading
-
-predictor = PX200Predictor(Path("artifacts/px200-failure-model/px200_failure_model.joblib"))
-reading = PX200Reading(
-    equipment_model="PX-200",
-    casing_temperature_c=96.0,
-    vibration_mm_s=7.8,
-    discharge_pressure_bar=4.0,
-    flow_lpm=150.0,
-    motor_current_a=16.0,
-    hours_since_maintenance=800.0,
-)
-print(predictor.predict(reading).model_dump())
-```
-
-The `failure_score` and `flagged_for_review` fields are **synthetic-demo outputs**, not real-world recommendations.
-
-## Run Quality Checks
+The tests need no Azure account or paid API calls:
 
 ```bash
 ruff check .
@@ -205,21 +125,51 @@ mypy src tests
 pytest -q
 ```
 
-At this checkpoint, 30 tests pass offline. They cover configuration, API behavior, manual/index preparation, retrieval input checks, LangGraph step order, model input validation, feature ordering, positive-class selection, and malformed-model checks. Tests use stand-ins rather than paid Azure calls or a private model download.
+To train a local model from the included synthetic data, save it at the path expected by the API and Dockerfile:
 
-## Deployment, Cost, and Limitations
+```bash
+MLFLOW_ALLOW_FILE_STORE=true MLFLOW_TRACKING_URI=./mlruns \
+python training/train.py \
+  --data data/sensors/px200_sensor_readings.csv \
+  --model-output artifacts/px200-failure-model/px200_failure_model.joblib
+```
 
-Azure Container Registry holds a private Docker image. Azure Container Apps was deployed with an earlier health-only version and a zero-minimum-replica setting. A GitHub push does **not** update that Azure deployment automatically.
+You can then start the API and test `/health` and `/predict` without Azure:
 
-The newer `/ask` code and the ML predictor currently run locally. No Azure Function or online ML endpoint has been deployed. The registered model is an asset, not a running prediction service.
+```bash
+python -m uvicorn enterprise_ai_platform.main:app --reload
+```
 
-Azure workspaces, storage, registries, search services, monitoring, and model calls may incur charges. Review your Azure resources when the demonstration is finished; an idle application does not guarantee zero total cost.
+Open `http://127.0.0.1:8000/docs` for the interactive API page. To use `/ask` or `/diagnose`, configure your own Foundry deployments and Azure AI Search service in a local `.env` file based on `.env.example`, sign in with `az login`, and prepare the search index:
 
-Remaining limitations include unverified generated citations, possible retrieval misses, an uncalibrated synthetic ML score, no combined RAG-plus-model response, no API authentication, and no automated deployment or full infrastructure-as-code setup.
+```bash
+python -m enterprise_ai_platform.rag.create_index
+python -m enterprise_ai_platform.rag.upload_manuals
+```
 
-## Next Milestones
+Those preparation commands and live RAG requests make Azure calls and require suitable access. Do not commit `.env`, credentials, tokens, or connection strings.
 
-1. Build a small Azure Function that serves the trusted registered model.
-2. Add a LangGraph step that obtains the model score and combines it with cited manual guidance, without confusing a score with evidence.
-3. Revisit Databricks and Delta Lake for repeatable sensor-data preparation.
-4. Add stronger evaluation, authentication, observability, and CI/CD.
+The Azure ML job definition is in `azureml-train-job.yml`. It expects an existing Azure ML workspace and a `px200-sensor-readings:1` data asset. The registered model file is not stored in Git. If you have access to the workspace, you can download it with `az ml model download`; otherwise, use the local training command above. Only load joblib model files from trusted sources.
+
+After the model file exists at the expected path, build a Linux image with:
+
+```bash
+docker build --platform linux/amd64 \
+  --tag azure-enterprise-ai-platform:diagnose-local .
+```
+
+The image contains the API code and model, but the manuals are retrieved from Azure AI Search at runtime. A locally running Docker container does not automatically inherit your Azure CLI credentials; the Azure deployment uses managed identity instead.
+
+## Deployment, security, and cost
+
+The image was built locally, pushed to a private Azure Container Registry, and deployed to Azure Container Apps. A GitHub push does **not** update the Azure deployment automatically. The repository does not yet contain infrastructure-as-code or a CI/CD pipeline to recreate and deploy every Azure resource.
+
+The demo ingress has an IP allow rule, but the API has no application-level authentication or rate limiting. It should not be opened broadly without those controls. Generated citations are not automatically verified, retrieval can miss relevant text, and the synthetic score must not drive real maintenance decisions.
+
+The Container App can scale to zero when idle. That does not remove charges from other Azure resources: [Azure documents scale-to-zero billing](https://learn.microsoft.com/en-us/azure/container-apps/scale-app), while [Azure AI Search has its own pricing](https://azure.microsoft.com/en-us/pricing/details/search/). Review costs and remove resources you no longer need. The code, tests, and synthetic data remain on GitHub after the cloud deployment is removed, but the live API will no longer work.
+
+## Next steps
+
+- Add Databricks and Delta Lake to clean and version synthetic sensor data before Azure ML training. The current Azure ML job reads the prepared CSV directly.
+- Add automated deployment and infrastructure definitions.
+- Improve evaluation, citation checks, model calibration, observability, authentication, and usage controls.

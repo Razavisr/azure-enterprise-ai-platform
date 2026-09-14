@@ -10,6 +10,9 @@ COPY src ./src
 
 RUN python -m pip install --no-cache-dir .
 
+COPY artifacts/px200-failure-model/px200_failure_model.joblib \
+    ./artifacts/px200-failure-model/px200_failure_model.joblib
+
 RUN useradd --create-home --uid 10001 appuser
 USER appuser
 

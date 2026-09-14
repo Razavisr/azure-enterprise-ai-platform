@@ -1,3 +1,4 @@
+from functools import lru_cache
 from math import isfinite
 from pathlib import Path
 from typing import Literal
@@ -5,6 +6,8 @@ from typing import Literal
 import joblib  # type: ignore[import-untyped]
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
+
+from enterprise_ai_platform.config import get_settings
 
 
 class PX200Reading(BaseModel):
@@ -71,3 +74,8 @@ class PX200Predictor:
             decision_threshold=self._threshold,
             note="Synthetic demonstration only; not a real-world maintenance decision.",
         )
+
+
+@lru_cache(maxsize=1)
+def get_predictor() -> PX200Predictor:
+    return PX200Predictor(get_settings().model_path)

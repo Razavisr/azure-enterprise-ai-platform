@@ -42,9 +42,17 @@ def generate_grounded_answer(question: str, hits: list[ManualHit]) -> str:
                     "Do not present this demo as real-world maintenance guidance."
                 ),
                 input=f"Question: {clean_question}\n\nManual excerpts:\n{evidence}",
-                max_output_tokens=1600,
+                max_output_tokens=3000,
                 store=False,
             )
+
+    if response.status != "completed":
+        reason = (
+            response.incomplete_details.reason
+            if response.incomplete_details is not None
+            else response.status
+        )
+        raise RuntimeError(f"The chat model did not complete: {reason}")
 
     answer = response.output_text.strip()
     if not answer:

@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -15,6 +16,7 @@ class Settings(BaseSettings):
     azure_openai_embedding_deployment: str = "text-embedding-3-small"
     azure_search_endpoint: str | None = None
     azure_search_index_name: str = "equipment-manuals"
+    model_path: Path = Path("artifacts/px200-failure-model/px200_failure_model.joblib")
 
     model_config = SettingsConfigDict(
         env_file=".env",

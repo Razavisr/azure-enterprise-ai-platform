@@ -21,7 +21,10 @@ htmlcov
 
 # Local generated output
 mlruns
-artifacts
+artifacts/*
+!artifacts/px200-failure-model/
+artifacts/px200-failure-model/*
+!artifacts/px200-failure-model/px200_failure_model.joblib
 tmp
 temp
 
