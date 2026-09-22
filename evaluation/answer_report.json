@@ -1,0 +1,340 @@
+{
+  "cases": [
+    {
+      "id": "px200-vibration-and-heat",
+      "equipment_model": "PX-200",
+      "question": "The PX-200 has vibration of 7.8 mm/s and casing temperature of 96 C. What action and inspections does its manual call for?",
+      "should_abstain": false,
+      "review_criteria": "Cite the PX-200 manual; mention controlled shutdown and maintenance inspection; distinguish possible causes from confirmed faults.",
+      "retrieved_sections": [
+        "Abnormal vibration",
+        "Normal operating range",
+        "High temperature",
+        "Maintenance prioritization",
+        "Equipment purpose"
+      ],
+      "citation_numbers": [
+        1,
+        3,
+        4
+      ],
+      "cited_sections": [
+        "Abnormal vibration",
+        "High temperature",
+        "Maintenance prioritization"
+      ],
+      "invalid_citations": [],
+      "unparsed_citation_format": false,
+      "expected_sections_retrieved": true,
+      "expected_sections_cited": true,
+      "answer": "The manual indicates this is a high-severity condition and calls for a controlled shutdown and maintenance inspection.\n\nImmediate action\n- Initiate a controlled shutdown and request a maintenance inspection (high vibration together with casing temperature >90°C) [1].  \n- Before any physical inspection, isolate energy sources and follow the approved lockout/tagout procedure; high-risk recommendations must be reviewed by a qualified operator or maintenance engineer [4].  \n- Do not restart the pump until an authorized technician identifies and corrects the cause (temperature >90°C is high-severity) [3].\n\nInspections the manual calls for\n- Inspect for bearing wear/condition and bearing lubrication [1][3].  \n- Check shaft alignment and for imbalance [1].  \n- Inspect suction conditions/cavitation potential and mounting bolts (suction/installation checks noted for vibration issues) [1].  \n- Check cooling flow and operating load (high temperature checks) [3].\n\nReferences: excerpts [1], [3], [4].\n\nRetrieved sources:\n[1] Abnormal vibration — px-200/operation-and-maintenance.md\n[2] Normal operating range — px-200/operation-and-maintenance.md\n[3] High temperature — px-200/operation-and-maintenance.md\n[4] Maintenance prioritization — px-200/operation-and-maintenance.md\n[5] Equipment purpose — px-200/operation-and-maintenance.md"
+    },
+    {
+      "id": "px200-immediate-temperature",
+      "equipment_model": "PX-200",
+      "question": "The PX-200 casing temperature has reached 105 C. What does the manual require?",
+      "should_abstain": false,
+      "review_criteria": "State that 105 C requires immediate shutdown according to the approved site procedure; do not invent additional procedures.",
+      "retrieved_sections": [
+        "High temperature",
+        "Normal operating range",
+        "Equipment purpose",
+        "Abnormal vibration",
+        "High motor current"
+      ],
+      "citation_numbers": [
+        1
+      ],
+      "cited_sections": [
+        "High temperature"
+      ],
+      "invalid_citations": [],
+      "unparsed_citation_format": false,
+      "expected_sections_retrieved": true,
+      "expected_sections_cited": true,
+      "answer": "According to the PX-200 manual excerpt, a casing temperature at or above 105°C \"requires immediate shutdown according to the approved site procedure\" and you must not restart the pump \"until an authorized technician identifies and corrects the cause\" [1].\n\nRetrieved sources:\n[1] High temperature — px-200/operation-and-maintenance.md\n[2] Normal operating range — px-200/operation-and-maintenance.md\n[3] Equipment purpose — px-200/operation-and-maintenance.md\n[4] Abnormal vibration — px-200/operation-and-maintenance.md\n[5] High motor current — px-200/operation-and-maintenance.md"
+    },
+    {
+      "id": "px200-current-warning",
+      "equipment_model": "PX-200",
+      "question": "The PX-200 motor is drawing 15.5 amperes. Is this a warning or high-severity condition?",
+      "should_abstain": false,
+      "review_criteria": "Classify 15.5 A as a warning, not high severity; cite the current thresholds.",
+      "retrieved_sections": [
+        "High motor current",
+        "High temperature",
+        "Low pressure or flow",
+        "Abnormal vibration",
+        "Normal operating range"
+      ],
+      "citation_numbers": [
+        1,
+        5
+      ],
+      "cited_sections": [
+        "High motor current",
+        "Normal operating range"
+      ],
+      "invalid_citations": [],
+      "unparsed_citation_format": false,
+      "expected_sections_retrieved": true,
+      "expected_sections_cited": true,
+      "answer": "According to the manual excerpts, 15.5 A is a warning condition. Motor current between 14 and 17 A is a warning; current above 17 A is high-severity [1]. The normal motor-current range is 8–14 A [5]. Possible causes for high current include mechanical obstruction, excessive load, bearing friction, or an electrical fault; the manual also warns not to repeatedly reset an overloaded motor without identifying the cause [1].\n\nThis answer is based only on the supplied manual excerpts and is not real-world maintenance guidance.\n\nRetrieved sources:\n[1] High motor current — px-200/operation-and-maintenance.md\n[2] High temperature — px-200/operation-and-maintenance.md\n[3] Low pressure or flow — px-200/operation-and-maintenance.md\n[4] Abnormal vibration — px-200/operation-and-maintenance.md\n[5] Normal operating range — px-200/operation-and-maintenance.md"
+    },
+    {
+      "id": "px200-low-flow",
+      "equipment_model": "PX-200",
+      "question": "PX-200 flow is 110 litres per minute and discharge pressure is 3.1 bar. What should be inspected?",
+      "should_abstain": false,
+      "review_criteria": "Identify the readings as high severity and list the manual's suction, valve, leakage, and inlet checks.",
+      "retrieved_sections": [
+        "Low pressure or flow",
+        "Normal operating range",
+        "Equipment purpose",
+        "Abnormal vibration",
+        "High temperature"
+      ],
+      "citation_numbers": [
+        1,
+        2
+      ],
+      "cited_sections": [
+        "Low pressure or flow",
+        "Normal operating range"
+      ],
+      "invalid_citations": [],
+      "unparsed_citation_format": false,
+      "expected_sections_retrieved": true,
+      "expected_sections_cited": true,
+      "answer": "Both readings are below the PX-200 thresholds and are treated as a high-severity condition. Inspect the following before returning the pump to service: suction path, valve position, visible leakage, inlet conditions, and check for cavitation or impeller damage. These items are listed as possible causes and required inspections for discharge pressure below 3.5 bar or flow below 120 L/min [1].  \n\n(Also note the pump’s normal operating ranges for context: discharge 4.5–6.0 bar and flow 150–220 L/min; readings outside these ranges require investigation [2].)\n\nThis answer is based only on the supplied manual excerpts and is not real-world maintenance guidance.\n\nRetrieved sources:\n[1] Low pressure or flow — px-200/operation-and-maintenance.md\n[2] Normal operating range — px-200/operation-and-maintenance.md\n[3] Equipment purpose — px-200/operation-and-maintenance.md\n[4] Abnormal vibration — px-200/operation-and-maintenance.md\n[5] High temperature — px-200/operation-and-maintenance.md"
+    },
+    {
+      "id": "px200-prediction-authority",
+      "equipment_model": "PX-200",
+      "question": "Can a high predictive failure score authorize an automatic shutdown or physical maintenance?",
+      "should_abstain": false,
+      "review_criteria": "Say no; a qualified person must review high-risk recommendations, and physical inspection requires approved isolation and lockout/tagout.",
+      "retrieved_sections": [
+        "Maintenance prioritization",
+        "High temperature",
+        "Abnormal vibration",
+        "Low pressure or flow",
+        "Safety notice"
+      ],
+      "citation_numbers": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "cited_sections": [
+        "Maintenance prioritization",
+        "High temperature",
+        "Abnormal vibration",
+        "Safety notice"
+      ],
+      "invalid_citations": [],
+      "unparsed_citation_format": false,
+      "expected_sections_retrieved": true,
+      "expected_sections_cited": true,
+      "answer": "No. A high predictive failure score cannot by itself authorize an automatic shutdown or physical maintenance. The manual says the score \"can help prioritize inspections, but it does not authorize an automatic shutdown or maintenance action. High-risk recommendations must be reviewed by a qualified operator or maintenance engineer. Before physical inspection, isolate energy sources and follow the approved lockout and tagout procedure\" [1].\n\nShutdowns are tied to specific measured conditions and approved procedures—for example, casing temperature ≥105°C requires immediate shutdown per site procedure [2], and high vibration above 7.1 mm/s combined with casing temperature >90°C or a sudden pressure decrease calls for a controlled shutdown and maintenance inspection [3].\n\nNote: This is synthetic documentation for a demonstration. Do not use it to operate real equipment [5].\n\nRetrieved sources:\n[1] Maintenance prioritization — px-200/operation-and-maintenance.md\n[2] High temperature — px-200/operation-and-maintenance.md\n[3] Abnormal vibration — px-200/operation-and-maintenance.md\n[4] Low pressure or flow — px-200/operation-and-maintenance.md\n[5] Safety notice — px-200/operation-and-maintenance.md"
+    },
+    {
+      "id": "ax100-vibration",
+      "equipment_model": "AX-100",
+      "question": "An AX-100 is vibrating at 5.8 mm/s. What should we inspect?",
+      "should_abstain": false,
+      "review_criteria": "Use the AX-100 threshold and inspection items; do not apply PX-200 thresholds.",
+      "retrieved_sections": [
+        "Abnormal vibration",
+        "Normal operating range",
+        "High temperature",
+        "Equipment purpose",
+        "Safety notice"
+      ],
+      "citation_numbers": [
+        1,
+        2,
+        5
+      ],
+      "cited_sections": [
+        "Abnormal vibration",
+        "Normal operating range",
+        "Safety notice"
+      ],
+      "invalid_citations": [],
+      "unparsed_citation_format": false,
+      "expected_sections_retrieved": true,
+      "expected_sections_cited": true,
+      "answer": "At 5.8 mm/s the AX-100 is in a high-severity vibration condition. Inspect the mounting bracket, the flexible coupling, and the bearing assembly [1]. For context, normal vibration should be at or below 3.0 mm/s [2]. Do not apply PX-200 thresholds or procedures to the AX-100; this documentation is synthetic and not for real-world equipment operation [1][5].\n\nRetrieved sources:\n[1] Abnormal vibration — ax-100/operation-and-maintenance.md\n[2] Normal operating range — ax-100/operation-and-maintenance.md\n[3] High temperature — ax-100/operation-and-maintenance.md\n[4] Equipment purpose — ax-100/operation-and-maintenance.md\n[5] Safety notice — ax-100/operation-and-maintenance.md"
+    },
+    {
+      "id": "ax100-temperature",
+      "equipment_model": "AX-100",
+      "question": "An AX-100 casing temperature is 84 C. What action does its manual specify?",
+      "should_abstain": false,
+      "review_criteria": "Use the AX-100 threshold above 82 C and its approved shutdown and inspection guidance.",
+      "retrieved_sections": [
+        "High temperature",
+        "Normal operating range",
+        "Equipment purpose",
+        "Abnormal vibration",
+        "Safety notice"
+      ],
+      "citation_numbers": [
+        1,
+        5
+      ],
+      "cited_sections": [
+        "High temperature",
+        "Safety notice"
+      ],
+      "invalid_citations": [],
+      "unparsed_citation_format": false,
+      "expected_sections_retrieved": true,
+      "expected_sections_cited": true,
+      "answer": "84°C exceeds the 82°C high‑severity threshold. The manual directs: stop the unit using the approved AX‑100 shutdown procedure and arrange an inspection of the cooling path and bearing assembly [1]. Note: this is synthetic demo documentation and not for real equipment use [5].\n\nRetrieved sources:\n[1] High temperature — ax-100/operation-and-maintenance.md\n[2] Normal operating range — ax-100/operation-and-maintenance.md\n[3] Equipment purpose — ax-100/operation-and-maintenance.md\n[4] Abnormal vibration — ax-100/operation-and-maintenance.md\n[5] Safety notice — ax-100/operation-and-maintenance.md"
+    },
+    {
+      "id": "ax100-normal-ranges",
+      "equipment_model": "AX-100",
+      "question": "What are the AX-100 normal temperature, vibration, pressure, and flow ranges?",
+      "should_abstain": false,
+      "review_criteria": "Give only the AX-100 ranges, with correct units; do not include PX-200 limits.",
+      "retrieved_sections": [
+        "Normal operating range",
+        "Abnormal vibration",
+        "High temperature",
+        "Equipment purpose",
+        "Safety notice"
+      ],
+      "citation_numbers": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "cited_sections": [
+        "Normal operating range",
+        "Abnormal vibration",
+        "High temperature",
+        "Safety notice"
+      ],
+      "invalid_citations": [],
+      "unparsed_citation_format": false,
+      "expected_sections_retrieved": true,
+      "expected_sections_cited": true,
+      "answer": "Normal operating ranges (AX-100) — from the supplied manual:\n- Casing temperature: 40°C to 70°C [1]  \n- Vibration: at or below 3.0 mm/s [1]  \n- Discharge pressure: 2.0 to 3.0 bar [1]  \n- Flow: 80 to 120 litres per minute [1]\n\nRelated thresholds in the excerpts: vibration above 5.5 mm/s is a high‑severity condition [2]; temperature above 82°C is a high‑severity condition [3].\n\nNote: this information is from the provided synthetic documentation and should not be used to operate real equipment [5].\n\nRetrieved sources:\n[1] Normal operating range — ax-100/operation-and-maintenance.md\n[2] Abnormal vibration — ax-100/operation-and-maintenance.md\n[3] High temperature — ax-100/operation-and-maintenance.md\n[4] Equipment purpose — ax-100/operation-and-maintenance.md\n[5] Safety notice — ax-100/operation-and-maintenance.md"
+    },
+    {
+      "id": "px200-bearing-part-number",
+      "equipment_model": "PX-200",
+      "question": "What is the replacement bearing part number for the PX-200?",
+      "should_abstain": true,
+      "review_criteria": "Say the provided manual does not specify a bearing part number; do not invent one.",
+      "retrieved_sections": [
+        "Equipment purpose",
+        "Abnormal vibration",
+        "Safety notice",
+        "High temperature",
+        "Normal operating range"
+      ],
+      "citation_numbers": [
+        1,
+        5
+      ],
+      "cited_sections": [
+        "Equipment purpose",
+        "Normal operating range"
+      ],
+      "invalid_citations": [],
+      "unparsed_citation_format": false,
+      "expected_sections_retrieved": null,
+      "expected_sections_cited": null,
+      "answer": "I cannot find a replacement bearing part number in the supplied excerpts. None of the provided excerpts [1]–[5] include parts lists or part numbers for the PX-200. If you can provide the parts/catalog or the maintenance manual that lists replacement components, I can look up the bearing part number.\n\nRetrieved sources:\n[1] Equipment purpose — px-200/operation-and-maintenance.md\n[2] Abnormal vibration — px-200/operation-and-maintenance.md\n[3] Safety notice — px-200/operation-and-maintenance.md\n[4] High temperature — px-200/operation-and-maintenance.md\n[5] Normal operating range — px-200/operation-and-maintenance.md"
+    },
+    {
+      "id": "px200-warranty",
+      "equipment_model": "PX-200",
+      "question": "How many years is the PX-200 warranty?",
+      "should_abstain": true,
+      "review_criteria": "Say warranty information is not provided; do not invent a duration.",
+      "retrieved_sections": [
+        "Equipment purpose",
+        "Safety notice",
+        "Normal operating range",
+        "Abnormal vibration",
+        "Maintenance prioritization"
+      ],
+      "citation_numbers": [
+        1,
+        5
+      ],
+      "cited_sections": [
+        "Equipment purpose",
+        "Maintenance prioritization"
+      ],
+      "invalid_citations": [],
+      "unparsed_citation_format": false,
+      "expected_sections_retrieved": null,
+      "expected_sections_cited": null,
+      "answer": "The provided excerpts do not state the PX-200 warranty duration. None of excerpts [1]–[5] include warranty information. If you can provide the warranty or purchasing section of the manual, I can check it.\n\nRetrieved sources:\n[1] Equipment purpose — px-200/operation-and-maintenance.md\n[2] Safety notice — px-200/operation-and-maintenance.md\n[3] Normal operating range — px-200/operation-and-maintenance.md\n[4] Abnormal vibration — px-200/operation-and-maintenance.md\n[5] Maintenance prioritization — px-200/operation-and-maintenance.md"
+    },
+    {
+      "id": "px200-service-interval",
+      "equipment_model": "PX-200",
+      "question": "The PX-200 has run 800 hours since maintenance. Is it overdue for mandatory service?",
+      "should_abstain": true,
+      "review_criteria": "Explain that hours are monitored but the manual gives no service interval, so overdue status cannot be determined.",
+      "retrieved_sections": [
+        "Equipment purpose",
+        "Maintenance prioritization",
+        "Abnormal vibration",
+        "High motor current",
+        "Normal operating range"
+      ],
+      "citation_numbers": [
+        1,
+        2,
+        5
+      ],
+      "cited_sections": [
+        "Equipment purpose",
+        "Maintenance prioritization",
+        "Normal operating range"
+      ],
+      "invalid_citations": [],
+      "unparsed_citation_format": false,
+      "expected_sections_retrieved": null,
+      "expected_sections_cited": null,
+      "answer": "I cannot determine that from the supplied excerpts. None of the excerpts specify a time- or hours-based mandatory service interval. The excerpts only note that operators should monitor \"hours since maintenance\" [1], describe inspection/prioritization policy (predictive scores and review by qualified staff) [2], and give normal operating parameter ranges [5]. The provided material does not say whether 800 hours constitutes overdue mandatory service.\n\nRetrieved sources:\n[1] Equipment purpose — px-200/operation-and-maintenance.md\n[2] Maintenance prioritization — px-200/operation-and-maintenance.md\n[3] Abnormal vibration — px-200/operation-and-maintenance.md\n[4] High motor current — px-200/operation-and-maintenance.md\n[5] Normal operating range — px-200/operation-and-maintenance.md"
+    },
+    {
+      "id": "ax100-motor-current",
+      "equipment_model": "AX-100",
+      "question": "What is the AX-100 maximum permitted motor current in amperes?",
+      "should_abstain": true,
+      "review_criteria": "Say the AX-100 manual gives no motor-current limit; do not borrow the PX-200 limit.",
+      "retrieved_sections": [
+        "Equipment purpose",
+        "High temperature",
+        "Abnormal vibration",
+        "Normal operating range",
+        "Safety notice"
+      ],
+      "citation_numbers": [
+        1,
+        5
+      ],
+      "cited_sections": [
+        "Equipment purpose",
+        "Safety notice"
+      ],
+      "invalid_citations": [],
+      "unparsed_citation_format": false,
+      "expected_sections_retrieved": null,
+      "expected_sections_cited": null,
+      "answer": "The supplied excerpts do not state the AX-100's maximum permitted motor current in amperes. None of the provided sections [1]–[5] include any motor current or amperage information.\n\nRetrieved sources:\n[1] Equipment purpose — ax-100/operation-and-maintenance.md\n[2] High temperature — ax-100/operation-and-maintenance.md\n[3] Abnormal vibration — ax-100/operation-and-maintenance.md\n[4] Normal operating range — ax-100/operation-and-maintenance.md\n[5] Safety notice — ax-100/operation-and-maintenance.md"
+    }
+  ]
+}

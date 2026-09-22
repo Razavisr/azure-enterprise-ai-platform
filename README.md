@@ -105,6 +105,14 @@ Training uses a standard scaler and logistic regression, compared with a dummy b
 
 These are demonstration metrics, not evidence of real equipment reliability. Recall of `0.447` means the model missed many simulated failures in its test set.
 
+## Evaluation
+
+The live Azure AI Search index was tested with 24 synthetic questions: Hit@1 was 75%, Hit@3 was 100%, MRR@5 was 0.868, and mean Recall@3 was 98%. For questions needing two manual sections, both sections appeared in the top five used by the application.
+
+A separate 12-question answer review covered eight answerable and four unanswerable questions. In this single run, all eight answers cited their expected sections, and the four unanswerable answers said the requested information was missing rather than inventing it.
+
+These are small, self-authored tests of fictional manuals—not real-world accuracy or safety claims. The test cases, saved outputs, methods, and limitations are in [evaluation/README.md](evaluation/README.md).
+
 ## Run it locally
 
 Use Python 3.12:
@@ -223,7 +231,7 @@ The demo ingress has an IP allow rule, but the API has no application-level auth
 
 Additional limitations include:
 
-- Generated citations are not automatically verified.
+- Citation numbers and expected sections are checked in a small evaluation set, but claim-level support is not automatically verified.
 - Retrieval can miss relevant manual sections.
 - The model was trained on synthetic data.
 - The model score is not a calibrated real-world failure probability.
@@ -245,7 +253,7 @@ Review Azure Cost Management and delete resources when they are no longer requir
 
 ## Next steps
 
-- Add a small, repeatable AI evaluation suite for retrieval quality, grounded answers, and citation validity.
+- Expand evaluation using independently authored questions and repeated runs.
 - Add structured request logging, latency measurements, and basic operational observability.
 - Add infrastructure-as-code definitions for recreating the Azure resources.
 - Add application authentication, rate limiting, and tighter network controls before any public production use.

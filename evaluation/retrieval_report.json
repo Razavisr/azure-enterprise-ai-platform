@@ -1,0 +1,519 @@
+{
+  "top_k": 5,
+  "overall": {
+    "cases": 24,
+    "hit_at_1": 0.75,
+    "hit_at_3": 1.0,
+    "mrr_at_5": 0.8680555555555555,
+    "mean_recall_at_3": 0.9791666666666666,
+    "mean_recall_at_5": 1.0,
+    "correct_equipment_rate": 1.0
+  },
+  "by_category": {
+    "baseline": {
+      "cases": 8,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "mrr_at_5": 1.0,
+      "mean_recall_at_3": 1.0,
+      "mean_recall_at_5": 1.0,
+      "correct_equipment_rate": 1.0
+    },
+    "combined": {
+      "cases": 2,
+      "hit_at_1": 0.0,
+      "hit_at_3": 1.0,
+      "mrr_at_5": 0.41666666666666663,
+      "mean_recall_at_3": 0.75,
+      "mean_recall_at_5": 1.0,
+      "correct_equipment_rate": 1.0
+    },
+    "cross_equipment": {
+      "cases": 3,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "mrr_at_5": 1.0,
+      "mean_recall_at_3": 1.0,
+      "mean_recall_at_5": 1.0,
+      "correct_equipment_rate": 1.0
+    },
+    "paraphrase": {
+      "cases": 6,
+      "hit_at_1": 0.6666666666666666,
+      "hit_at_3": 1.0,
+      "mrr_at_5": 0.8333333333333334,
+      "mean_recall_at_3": 1.0,
+      "mean_recall_at_5": 1.0,
+      "correct_equipment_rate": 1.0
+    },
+    "threshold": {
+      "cases": 5,
+      "hit_at_1": 0.6,
+      "hit_at_3": 1.0,
+      "mrr_at_5": 0.8,
+      "mean_recall_at_3": 1.0,
+      "mean_recall_at_5": 1.0,
+      "correct_equipment_rate": 1.0
+    }
+  },
+  "cases": [
+    {
+      "id": "px200-high-vibration",
+      "category": "baseline",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "Abnormal vibration": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Abnormal vibration",
+        "Normal operating range",
+        "Low pressure or flow",
+        "Equipment purpose",
+        "High temperature"
+      ]
+    },
+    {
+      "id": "px200-high-temperature",
+      "category": "baseline",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "High temperature": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "High temperature",
+        "Maintenance prioritization",
+        "Normal operating range",
+        "Equipment purpose",
+        "Abnormal vibration"
+      ]
+    },
+    {
+      "id": "px200-low-pressure",
+      "category": "baseline",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "Low pressure or flow": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Low pressure or flow",
+        "Normal operating range",
+        "Equipment purpose",
+        "Abnormal vibration",
+        "Maintenance prioritization"
+      ]
+    },
+    {
+      "id": "px200-high-current",
+      "category": "baseline",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "High motor current": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "High motor current",
+        "Equipment purpose",
+        "Normal operating range",
+        "High temperature",
+        "Low pressure or flow"
+      ]
+    },
+    {
+      "id": "px200-normal-range",
+      "category": "baseline",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "Normal operating range": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Normal operating range",
+        "Equipment purpose",
+        "High temperature",
+        "High motor current",
+        "Abnormal vibration"
+      ]
+    },
+    {
+      "id": "px200-prediction-safety",
+      "category": "baseline",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "Maintenance prioritization": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Maintenance prioritization",
+        "Abnormal vibration",
+        "Low pressure or flow",
+        "Safety notice",
+        "High temperature"
+      ]
+    },
+    {
+      "id": "ax100-high-vibration",
+      "category": "baseline",
+      "equipment_model": "AX-100",
+      "expected_ranks": {
+        "Abnormal vibration": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Abnormal vibration",
+        "Normal operating range",
+        "High temperature",
+        "Equipment purpose",
+        "Safety notice"
+      ]
+    },
+    {
+      "id": "ax100-high-temperature",
+      "category": "baseline",
+      "equipment_model": "AX-100",
+      "expected_ranks": {
+        "High temperature": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "High temperature",
+        "Equipment purpose",
+        "Abnormal vibration",
+        "Normal operating range",
+        "Safety notice"
+      ]
+    },
+    {
+      "id": "px200-shaking",
+      "category": "paraphrase",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "Abnormal vibration": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Abnormal vibration",
+        "High temperature",
+        "Normal operating range",
+        "Low pressure or flow",
+        "Equipment purpose"
+      ]
+    },
+    {
+      "id": "px200-weak-outlet",
+      "category": "paraphrase",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "Low pressure or flow": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Low pressure or flow",
+        "Normal operating range",
+        "Equipment purpose",
+        "High temperature",
+        "Abnormal vibration"
+      ]
+    },
+    {
+      "id": "px200-motor-load",
+      "category": "paraphrase",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "High motor current": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "High motor current",
+        "Normal operating range",
+        "Low pressure or flow",
+        "Maintenance prioritization",
+        "Abnormal vibration"
+      ]
+    },
+    {
+      "id": "px200-automatic-action",
+      "category": "paraphrase",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "Maintenance prioritization": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Maintenance prioritization",
+        "Low pressure or flow",
+        "Safety notice",
+        "High temperature",
+        "Abnormal vibration"
+      ]
+    },
+    {
+      "id": "ax100-running-hot",
+      "category": "paraphrase",
+      "equipment_model": "AX-100",
+      "expected_ranks": {
+        "High temperature": 2
+      },
+      "first_relevant_rank": 2,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Normal operating range",
+        "High temperature",
+        "Equipment purpose",
+        "Abnormal vibration",
+        "Safety notice"
+      ]
+    },
+    {
+      "id": "ax100-coupling-rattle",
+      "category": "paraphrase",
+      "equipment_model": "AX-100",
+      "expected_ranks": {
+        "Abnormal vibration": 2
+      },
+      "first_relevant_rank": 2,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Equipment purpose",
+        "Abnormal vibration",
+        "Normal operating range",
+        "High temperature",
+        "Safety notice"
+      ]
+    },
+    {
+      "id": "px200-just-below-temp-limit",
+      "category": "threshold",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "Normal operating range": 2
+      },
+      "first_relevant_rank": 2,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "High temperature",
+        "Normal operating range",
+        "Equipment purpose",
+        "Abnormal vibration",
+        "High motor current"
+      ]
+    },
+    {
+      "id": "px200-immediate-temp-limit",
+      "category": "threshold",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "High temperature": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "High temperature",
+        "Normal operating range",
+        "Maintenance prioritization",
+        "Equipment purpose",
+        "Abnormal vibration"
+      ]
+    },
+    {
+      "id": "px200-current-warning",
+      "category": "threshold",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "High motor current": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "High motor current",
+        "Normal operating range",
+        "Low pressure or flow",
+        "High temperature",
+        "Abnormal vibration"
+      ]
+    },
+    {
+      "id": "px200-pressure-severe",
+      "category": "threshold",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "Low pressure or flow": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Low pressure or flow",
+        "Normal operating range",
+        "High temperature",
+        "Abnormal vibration",
+        "High motor current"
+      ]
+    },
+    {
+      "id": "ax100-normal-vibration",
+      "category": "threshold",
+      "equipment_model": "AX-100",
+      "expected_ranks": {
+        "Normal operating range": 2
+      },
+      "first_relevant_rank": 2,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Abnormal vibration",
+        "Normal operating range",
+        "Equipment purpose",
+        "High temperature",
+        "Safety notice"
+      ]
+    },
+    {
+      "id": "ax100-not-px200-limit",
+      "category": "cross_equipment",
+      "equipment_model": "AX-100",
+      "expected_ranks": {
+        "Abnormal vibration": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Abnormal vibration",
+        "Equipment purpose",
+        "High temperature",
+        "Normal operating range",
+        "Safety notice"
+      ]
+    },
+    {
+      "id": "px200-not-ax100-limit",
+      "category": "cross_equipment",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "High temperature": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "High temperature",
+        "Equipment purpose",
+        "Normal operating range",
+        "Safety notice",
+        "High motor current"
+      ]
+    },
+    {
+      "id": "ax100-pressure-and-flow",
+      "category": "cross_equipment",
+      "equipment_model": "AX-100",
+      "expected_ranks": {
+        "Normal operating range": 1
+      },
+      "first_relevant_rank": 1,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Normal operating range",
+        "Equipment purpose",
+        "High temperature",
+        "Abnormal vibration",
+        "Safety notice"
+      ]
+    },
+    {
+      "id": "px200-vibration-plus-heat",
+      "category": "combined",
+      "equipment_model": "PX-200",
+      "expected_ranks": {
+        "Abnormal vibration": 2,
+        "High temperature": 3
+      },
+      "first_relevant_rank": 2,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Normal operating range",
+        "Abnormal vibration",
+        "High temperature",
+        "Equipment purpose",
+        "Low pressure or flow"
+      ]
+    },
+    {
+      "id": "ax100-vibration-plus-heat",
+      "category": "combined",
+      "equipment_model": "AX-100",
+      "expected_ranks": {
+        "Abnormal vibration": 3,
+        "High temperature": 4
+      },
+      "first_relevant_rank": 3,
+      "recall_at_3": 0.5,
+      "recall_at_5": 1.0,
+      "correct_equipment": true,
+      "retrieved_sections": [
+        "Equipment purpose",
+        "Normal operating range",
+        "Abnormal vibration",
+        "High temperature",
+        "Safety notice"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,172 @@
+[
+  {
+    "id": "px200-high-vibration",
+    "category": "baseline",
+    "equipment_model": "PX-200",
+    "question": "A PX-200 pump has vibration of 7.8 mm/s. What condition is this and what should be inspected?",
+    "expected_section": "Abnormal vibration"
+  },
+  {
+    "id": "px200-high-temperature",
+    "category": "baseline",
+    "equipment_model": "PX-200",
+    "question": "The PX-200 casing temperature is 96 C. What action and inspections does the manual recommend?",
+    "expected_section": "High temperature"
+  },
+  {
+    "id": "px200-low-pressure",
+    "category": "baseline",
+    "equipment_model": "PX-200",
+    "question": "The PX-200 discharge pressure is 3.1 bar. What possible causes and inspection steps are listed?",
+    "expected_section": "Low pressure or flow"
+  },
+  {
+    "id": "px200-high-current",
+    "category": "baseline",
+    "equipment_model": "PX-200",
+    "question": "The PX-200 motor current is 18 amperes. How severe is this and what could cause it?",
+    "expected_section": "High motor current"
+  },
+  {
+    "id": "px200-normal-range",
+    "category": "baseline",
+    "equipment_model": "PX-200",
+    "question": "What are the normal casing temperature, vibration, pressure, flow, and motor-current ranges for the PX-200?",
+    "expected_section": "Normal operating range"
+  },
+  {
+    "id": "px200-prediction-safety",
+    "category": "baseline",
+    "equipment_model": "PX-200",
+    "question": "Can a predictive failure score automatically authorize a shutdown or maintenance action?",
+    "expected_section": "Maintenance prioritization"
+  },
+  {
+    "id": "ax100-high-vibration",
+    "category": "baseline",
+    "equipment_model": "AX-100",
+    "question": "An AX-100 has vibration above 5.5 mm/s. What should be inspected?",
+    "expected_section": "Abnormal vibration"
+  },
+  {
+    "id": "ax100-high-temperature",
+    "category": "baseline",
+    "equipment_model": "AX-100",
+    "question": "An AX-100 temperature is above 82 C. What action and inspection does its manual require?",
+    "expected_section": "High temperature"
+  },
+  {
+    "id": "px200-shaking",
+    "category": "paraphrase",
+    "equipment_model": "PX-200",
+    "question": "This pump is shaking at 6.2 mm/s. Which mechanical items should the technician check?",
+    "expected_section": "Abnormal vibration"
+  },
+  {
+    "id": "px200-weak-outlet",
+    "category": "paraphrase",
+    "equipment_model": "PX-200",
+    "question": "The outlet gauge fell to 3.1 bar and water delivery is 110 litres per minute. Where should we look for the problem?",
+    "expected_section": "Low pressure or flow"
+  },
+  {
+    "id": "px200-motor-load",
+    "category": "paraphrase",
+    "equipment_model": "PX-200",
+    "question": "The electric motor is drawing 18.4 amps. What kinds of faults might explain this reading?",
+    "expected_section": "High motor current"
+  },
+  {
+    "id": "px200-automatic-action",
+    "category": "paraphrase",
+    "equipment_model": "PX-200",
+    "question": "Our prediction system flagged the pump. May software authorize maintenance or stop it without a person reviewing the result?",
+    "expected_section": "Maintenance prioritization"
+  },
+  {
+    "id": "ax100-running-hot",
+    "category": "paraphrase",
+    "equipment_model": "AX-100",
+    "question": "The auxiliary unit is running at 84 C. What should the operator do and examine?",
+    "expected_section": "High temperature"
+  },
+  {
+    "id": "ax100-coupling-rattle",
+    "category": "paraphrase",
+    "equipment_model": "AX-100",
+    "question": "The compact pump rattles and measures 5.8 mm/s. Which components need inspection?",
+    "expected_section": "Abnormal vibration"
+  },
+  {
+    "id": "px200-just-below-temp-limit",
+    "category": "threshold",
+    "equipment_model": "PX-200",
+    "question": "Is a PX-200 casing temperature of 79.9 C within its normal operating range?",
+    "expected_section": "Normal operating range"
+  },
+  {
+    "id": "px200-immediate-temp-limit",
+    "category": "threshold",
+    "equipment_model": "PX-200",
+    "question": "The casing reached exactly 105 C. What does the PX-200 procedure require?",
+    "expected_section": "High temperature"
+  },
+  {
+    "id": "px200-current-warning",
+    "category": "threshold",
+    "equipment_model": "PX-200",
+    "question": "A PX-200 motor is drawing 15.5 amperes. Is this normal, a warning, or high severity?",
+    "expected_section": "High motor current"
+  },
+  {
+    "id": "px200-pressure-severe",
+    "category": "threshold",
+    "equipment_model": "PX-200",
+    "question": "The discharge gauge reads 3.4 bar. What severity does the manual assign to this pressure?",
+    "expected_section": "Low pressure or flow"
+  },
+  {
+    "id": "ax100-normal-vibration",
+    "category": "threshold",
+    "equipment_model": "AX-100",
+    "question": "Is vibration of 2.9 mm/s within the AX-100 normal range?",
+    "expected_section": "Normal operating range"
+  },
+  {
+    "id": "ax100-not-px200-limit",
+    "category": "cross_equipment",
+    "equipment_model": "AX-100",
+    "question": "Someone quoted a PX-200 vibration threshold. For an AX-100 reading of 5.8 mm/s, which manual limit and inspection items apply?",
+    "expected_section": "Abnormal vibration"
+  },
+  {
+    "id": "px200-not-ax100-limit",
+    "category": "cross_equipment",
+    "equipment_model": "PX-200",
+    "question": "Someone quoted the AX-100 temperature limit of 82 C. For a PX-200 at 95 C, which equipment guidance applies?",
+    "expected_section": "High temperature"
+  },
+  {
+    "id": "ax100-pressure-and-flow",
+    "category": "cross_equipment",
+    "equipment_model": "AX-100",
+    "question": "For the AX-100, are pressure of 2.6 bar and flow of 100 litres per minute within normal limits?",
+    "expected_section": "Normal operating range"
+  },
+  {
+    "id": "px200-vibration-plus-heat",
+    "category": "combined",
+    "equipment_model": "PX-200",
+    "question": "The pump vibrates at 7.8 mm/s while its casing is at 96 C. What action is required, and what should be checked for both symptoms?",
+    "expected_section": "Abnormal vibration",
+    "expected_sections": ["Abnormal vibration", "High temperature"]
+  },
+  {
+    "id": "ax100-vibration-plus-heat",
+    "category": "combined",
+    "equipment_model": "AX-100",
+    "question": "The auxiliary pump has vibration of 5.8 mm/s and temperature of 84 C. What do its two relevant manual sections say?",
+    "expected_section": "Abnormal vibration",
+    "expected_sections": ["Abnormal vibration", "High temperature"]
+  }
+]

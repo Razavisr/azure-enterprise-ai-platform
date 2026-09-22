@@ -1,0 +1,98 @@
+[
+  {
+    "id": "px200-vibration-and-heat",
+    "equipment_model": "PX-200",
+    "question": "The PX-200 has vibration of 7.8 mm/s and casing temperature of 96 C. What action and inspections does its manual call for?",
+    "expected_sections": ["Abnormal vibration", "High temperature"],
+    "should_abstain": false,
+    "review_criteria": "Cite the PX-200 manual; mention controlled shutdown and maintenance inspection; distinguish possible causes from confirmed faults."
+  },
+  {
+    "id": "px200-immediate-temperature",
+    "equipment_model": "PX-200",
+    "question": "The PX-200 casing temperature has reached 105 C. What does the manual require?",
+    "expected_sections": ["High temperature"],
+    "should_abstain": false,
+    "review_criteria": "State that 105 C requires immediate shutdown according to the approved site procedure; do not invent additional procedures."
+  },
+  {
+    "id": "px200-current-warning",
+    "equipment_model": "PX-200",
+    "question": "The PX-200 motor is drawing 15.5 amperes. Is this a warning or high-severity condition?",
+    "expected_sections": ["High motor current"],
+    "should_abstain": false,
+    "review_criteria": "Classify 15.5 A as a warning, not high severity; cite the current thresholds."
+  },
+  {
+    "id": "px200-low-flow",
+    "equipment_model": "PX-200",
+    "question": "PX-200 flow is 110 litres per minute and discharge pressure is 3.1 bar. What should be inspected?",
+    "expected_sections": ["Low pressure or flow"],
+    "should_abstain": false,
+    "review_criteria": "Identify the readings as high severity and list the manual's suction, valve, leakage, and inlet checks."
+  },
+  {
+    "id": "px200-prediction-authority",
+    "equipment_model": "PX-200",
+    "question": "Can a high predictive failure score authorize an automatic shutdown or physical maintenance?",
+    "expected_sections": ["Maintenance prioritization"],
+    "should_abstain": false,
+    "review_criteria": "Say no; a qualified person must review high-risk recommendations, and physical inspection requires approved isolation and lockout/tagout."
+  },
+  {
+    "id": "ax100-vibration",
+    "equipment_model": "AX-100",
+    "question": "An AX-100 is vibrating at 5.8 mm/s. What should we inspect?",
+    "expected_sections": ["Abnormal vibration"],
+    "should_abstain": false,
+    "review_criteria": "Use the AX-100 threshold and inspection items; do not apply PX-200 thresholds."
+  },
+  {
+    "id": "ax100-temperature",
+    "equipment_model": "AX-100",
+    "question": "An AX-100 casing temperature is 84 C. What action does its manual specify?",
+    "expected_sections": ["High temperature"],
+    "should_abstain": false,
+    "review_criteria": "Use the AX-100 threshold above 82 C and its approved shutdown and inspection guidance."
+  },
+  {
+    "id": "ax100-normal-ranges",
+    "equipment_model": "AX-100",
+    "question": "What are the AX-100 normal temperature, vibration, pressure, and flow ranges?",
+    "expected_sections": ["Normal operating range"],
+    "should_abstain": false,
+    "review_criteria": "Give only the AX-100 ranges, with correct units; do not include PX-200 limits."
+  },
+  {
+    "id": "px200-bearing-part-number",
+    "equipment_model": "PX-200",
+    "question": "What is the replacement bearing part number for the PX-200?",
+    "expected_sections": [],
+    "should_abstain": true,
+    "review_criteria": "Say the provided manual does not specify a bearing part number; do not invent one."
+  },
+  {
+    "id": "px200-warranty",
+    "equipment_model": "PX-200",
+    "question": "How many years is the PX-200 warranty?",
+    "expected_sections": [],
+    "should_abstain": true,
+    "review_criteria": "Say warranty information is not provided; do not invent a duration."
+  },
+  {
+    "id": "px200-service-interval",
+    "equipment_model": "PX-200",
+    "question": "The PX-200 has run 800 hours since maintenance. Is it overdue for mandatory service?",
+    "expected_sections": [],
+    "should_abstain": true,
+    "review_criteria": "Explain that hours are monitored but the manual gives no service interval, so overdue status cannot be determined."
+  },
+  {
+    "id": "ax100-motor-current",
+    "equipment_model": "AX-100",
+    "question": "What is the AX-100 maximum permitted motor current in amperes?",
+    "expected_sections": [],
+    "should_abstain": true,
+    "review_criteria": "Say the AX-100 manual gives no motor-current limit; do not borrow the PX-200 limit."
+  }
+]
