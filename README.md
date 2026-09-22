@@ -54,10 +54,11 @@ The cloud application uses a user-assigned managed identity to access Foundry an
 | MLflow and Azure ML model registry | Record training metrics and store model version 1 |
 | Azure Container Registry and Container Apps | Store commit-tagged Docker images and host the API |
 | GitHub Actions | Runs automatic CI checks and manually triggered OIDC-based Azure deployment |
+| Structured observability | Logs request metadata, response request IDs, and diagnosis-stage timing |
 
 The model was trained and registered in Azure ML, then downloaded and copied into the Docker image. **Prediction runs inside the Container App; this project does not use an Azure ML online endpoint.** Azure Functions is not part of the current design.
 
-The deployed Container App was tested with `GET /health`, `POST /predict`, and `POST /diagnose`. The current project checks pass: **39 offline tests**, Ruff linting and formatting, and strict mypy type checking.
+The Container App was previously tested with `GET /health`, `POST /predict`, and `POST /diagnose`. The current source passes **41 offline tests**, Ruff linting and formatting, and strict mypy type checking. The new observability code was verified locally but has not been redeployed to Azure.
 
 ## API
 
@@ -112,6 +113,14 @@ The live Azure AI Search index was tested with 24 synthetic questions: Hit@1 was
 A separate 12-question answer review covered eight answerable and four unanswerable questions. In this single run, all eight answers cited their expected sections, and the four unanswerable answers said the requested information was missing rather than inventing it.
 
 These are small, self-authored tests of fictional manuals—not real-world accuracy or safety claims. The test cases, saved outputs, methods, and limitations are in [evaluation/README.md](evaluation/README.md).
+
+## Observability
+
+Each API request produces a JSON log with a request ID, method, matched route, status code, and total duration. The response includes the same ID in its `X-Request-ID` header. The `/diagnose` workflow also logs the outcome and duration of its prediction, retrieval, and answer-generation stages.
+
+These logs do not include the question, sensor readings, request body, URL query values, or exception message. A local end-to-end request returned HTTP 200 and produced the three stage logs plus the total-request log. This updated logging code has not been redeployed to Azure.
+
+Stage logs do not yet carry the request ID, so they cannot be reliably matched to a particular request when requests run concurrently.
 
 ## Run it locally
 
@@ -254,7 +263,7 @@ Review Azure Cost Management and delete resources when they are no longer requir
 ## Next steps
 
 - Expand evaluation using independently authored questions and repeated runs.
-- Add structured request logging, latency measurements, and basic operational observability.
+- Correlate diagnosis-stage logs with request IDs.
 - Add infrastructure-as-code definitions for recreating the Azure resources.
 - Add application authentication, rate limiting, and tighter network controls before any public production use.
 - Optionally add Databricks and Delta Lake to clean and version sensor data before Azure ML training. The current training job intentionally reads the prepared CSV directly.

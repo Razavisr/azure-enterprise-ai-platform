@@ -1,11 +1,21 @@
-from fastapi import FastAPI, HTTPException
+from time import perf_counter
+from uuid import uuid4
+
+import structlog
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
+from starlette.middleware.base import RequestResponseEndpoint
+from starlette.responses import Response
 
 from enterprise_ai_platform.config import get_settings
 from enterprise_ai_platform.ml.inference import PX200Reading, RiskPrediction, get_predictor
+from enterprise_ai_platform.observability import configure_logging
 from enterprise_ai_platform.workflow import diagnosis_graph, rag_graph
 
 settings = get_settings()
+
+configure_logging(settings.log_level)
+request_logger = structlog.get_logger("enterprise_ai_platform.http")
 
 
 class HealthResponse(BaseModel):
@@ -38,6 +48,40 @@ app = FastAPI(
     description="A reusable platform for enterprise AI applications.",
     version=settings.app_version,
 )
+
+
+@app.middleware("http")
+async def observe_request(request: Request, call_next: RequestResponseEndpoint) -> Response:
+    request_id = str(uuid4())
+    started = perf_counter()
+    status_code = 500
+    error_type: str | None = None
+
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+        response.headers["X-Request-ID"] = request_id
+        return response
+    except Exception as exc:
+        error_type = type(exc).__name__
+        raise
+    finally:
+        route = request.scope.get("route")
+        route_path = getattr(route, "path", "unmatched")
+        fields = {
+            "request_id": request_id,
+            "method": request.method,
+            "route": route_path,
+            "status_code": status_code,
+            "duration_ms": round((perf_counter() - started) * 1000, 2),
+        }
+        if error_type is not None:
+            fields["error_type"] = error_type
+
+        if status_code >= 500:
+            request_logger.error("http_request", **fields)
+        else:
+            request_logger.info("http_request", **fields)
 
 
 @app.get("/health", response_model=HealthResponse, tags=["system"])

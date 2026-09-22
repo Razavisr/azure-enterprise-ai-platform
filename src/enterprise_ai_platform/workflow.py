@@ -3,6 +3,7 @@ from typing import NotRequired, TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from enterprise_ai_platform.ml.inference import PX200Reading, RiskPrediction, get_predictor
+from enterprise_ai_platform.observability import measure_stage
 from enterprise_ai_platform.rag.generation import generate_grounded_answer
 from enterprise_ai_platform.rag.retrieval import ManualHit, search_manuals
 
@@ -64,17 +65,19 @@ def build_diagnosis_question(state: DiagnosisState) -> str:
 
 
 def predict_risk(state: DiagnosisState) -> dict[str, RiskPrediction]:
-    return {"prediction": get_predictor().predict(state["reading"])}
+    with measure_stage("diagnose.predict"):
+        prediction = get_predictor().predict(state["reading"])
+    return {"prediction": prediction}
 
 
 def retrieve_diagnosis_manuals(state: DiagnosisState) -> dict[str, list[ManualHit]]:
-    return {
-        "hits": search_manuals(
+    with measure_stage("diagnose.retrieve"):
+        hits = search_manuals(
             build_diagnosis_question(state),
             state["reading"].equipment_model,
             top=5,
         )
-    }
+    return {"hits": hits}
 
 
 def write_diagnosis_answer(state: DiagnosisState) -> dict[str, str]:
@@ -82,7 +85,9 @@ def write_diagnosis_answer(state: DiagnosisState) -> dict[str, str]:
     if hits is None:
         raise RuntimeError("The retrieval step must run before answer generation.")
 
-    return {"answer": generate_grounded_answer(build_diagnosis_question(state), hits)}
+    with measure_stage("diagnose.generate"):
+        answer = generate_grounded_answer(build_diagnosis_question(state), hits)
+    return {"answer": answer}
 
 
 diagnosis_builder = StateGraph(DiagnosisState)
