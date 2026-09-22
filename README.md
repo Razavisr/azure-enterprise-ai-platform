@@ -1,6 +1,6 @@
 # Azure Enterprise AI Platform
 
-A working Azure-hosted demonstration that combines a machine-learning score with equipment-manual guidance. All equipment, manuals, readings, and failure labels in this project are synthetic.
+A deployed and tested Azure-hosted demonstration that combines a machine-learning score with equipment-manual guidance. All equipment, manuals, readings, and failure labels in this project are synthetic.
 
 ## What the platform does
 
@@ -19,7 +19,7 @@ Training and document preparation happen before a user sends a request:
 
 ```text
 Synthetic sensor CSV → Azure ML data asset → Azure ML training job
-                     → MLflow metrics → registered model (version 1)
+                     → MLflow metrics → registered model version 1
                      → trusted model file downloaded and bundled into Docker
 
 Synthetic manuals → LangChain text splitting → Foundry embeddings
@@ -46,17 +46,18 @@ The cloud application uses a user-assigned managed identity to access Foundry an
 | Component | Role |
 |---|---|
 | FastAPI | Exposes `/health`, `/ask`, `/predict`, and `/diagnose` |
-| LangGraph | Orchestrates retrieval and generation, and the combined diagnosis workflow |
+| LangGraph | Orchestrates retrieval, generation, and the combined diagnosis workflow |
 | LangChain text splitters | Divides the synthetic manuals into searchable sections |
 | Microsoft Foundry | Hosts `gpt-5-mini` and `text-embedding-3-small` deployments |
 | Azure AI Search | Stores 13 manual sections and runs equipment-filtered hybrid keyword/vector search |
 | Azure Machine Learning | Runs training on a versioned synthetic CSV data asset |
 | MLflow and Azure ML model registry | Record training metrics and store model version 1 |
-| Azure Container Registry and Container Apps | Store and run the `diagnose-v1` Docker image |
+| Azure Container Registry and Container Apps | Store commit-tagged Docker images and host the API |
+| GitHub Actions | Runs automatic CI checks and manually triggered OIDC-based Azure deployment |
 
 The model was trained and registered in Azure ML, then downloaded and copied into the Docker image. **Prediction runs inside the Container App; this project does not use an Azure ML online endpoint.** Azure Functions is not part of the current design.
 
-The deployed Container App has been tested with `GET /health`, `POST /predict`, and `POST /diagnose`. The current local checks pass: **39 offline tests**, Ruff, and strict mypy.
+The deployed Container App was tested with `GET /health`, `POST /predict`, and `POST /diagnose`. The current project checks pass: **39 offline tests**, Ruff linting and formatting, and strict mypy type checking.
 
 ## API
 
@@ -140,7 +141,9 @@ You can then start the API and test `/health` and `/predict` without Azure:
 python -m uvicorn enterprise_ai_platform.main:app --reload
 ```
 
-Open `http://127.0.0.1:8000/docs` for the interactive API page. To use `/ask` or `/diagnose`, configure your own Foundry deployments and Azure AI Search service in a local `.env` file based on `.env.example`, sign in with `az login`, and prepare the search index:
+Open `http://127.0.0.1:8000/docs` for the interactive API page.
+
+To use `/ask` or `/diagnose`, configure your own Foundry deployments and Azure AI Search service in a local `.env` file based on `.env.example`, sign in with `az login`, and prepare the search index:
 
 ```bash
 python -m enterprise_ai_platform.rag.create_index
@@ -149,7 +152,9 @@ python -m enterprise_ai_platform.rag.upload_manuals
 
 Those preparation commands and live RAG requests make Azure calls and require suitable access. Do not commit `.env`, credentials, tokens, or connection strings.
 
-The Azure ML job definition is in `azureml-train-job.yml`. It expects an existing Azure ML workspace and a `px200-sensor-readings:1` data asset. The registered model file is not stored in Git. If you have access to the workspace, you can download it with `az ml model download`; otherwise, use the local training command above. Only load joblib model files from trusted sources.
+The Azure ML job definition is in `azureml-train-job.yml`. It expects an existing Azure ML workspace and a `px200-sensor-readings:1` data asset.
+
+The registered model file is not stored in Git. If you have access to the workspace, you can download it with `az ml model download`; otherwise, use the local training command above. Only load joblib model files from trusted sources.
 
 After the model file exists at the expected path, build a Linux image with:
 
@@ -158,18 +163,90 @@ docker build --platform linux/amd64 \
   --tag azure-enterprise-ai-platform:diagnose-local .
 ```
 
-The image contains the API code and model, but the manuals are retrieved from Azure AI Search at runtime. A locally running Docker container does not automatically inherit your Azure CLI credentials; the Azure deployment uses managed identity instead.
+The image contains the API code and model, but the manuals are retrieved from Azure AI Search at runtime. A locally running Docker container does not automatically inherit Azure CLI credentials; the Azure deployment uses managed identity instead.
 
-## Deployment, security, and cost
+## Continuous integration
 
-The image was built locally, pushed to a private Azure Container Registry, and deployed to Azure Container Apps. A GitHub push does **not** update the Azure deployment automatically. The repository does not yet contain infrastructure-as-code or a CI/CD pipeline to recreate and deploy every Azure resource.
+The `.github/workflows/ci.yml` workflow runs automatically for pushes and pull requests targeting `main`.
 
-The demo ingress has an IP allow rule, but the API has no application-level authentication or rate limiting. It should not be opened broadly without those controls. Generated citations are not automatically verified, retrieval can miss relevant text, and the synthetic score must not drive real maintenance decisions.
+It:
 
-The Container App can scale to zero when idle. That does not remove charges from other Azure resources: [Azure documents scale-to-zero billing](https://learn.microsoft.com/en-us/azure/container-apps/scale-app), while [Azure AI Search has its own pricing](https://azure.microsoft.com/en-us/pricing/details/search/). Review costs and remove resources you no longer need. The code, tests, and synthetic data remain on GitHub after the cloud deployment is removed, but the live API will no longer work.
+1. Checks out the repository.
+2. Configures Python 3.12.
+3. Installs the project and development dependencies.
+4. Checks installed dependency compatibility.
+5. Runs Ruff linting.
+6. Checks Ruff formatting.
+7. Runs strict mypy type checking.
+8. Runs the offline pytest suite.
+
+The CI tests do not call Azure OpenAI, Azure AI Search, or other paid Azure services.
+
+## Continuous deployment
+
+The `.github/workflows/deploy.yml` workflow deploys only when manually started from GitHub Actions. A normal Git push does not deploy the application automatically.
+
+The workflow:
+
+1. Authenticates to Azure through OpenID Connect.
+2. Downloads `px200-failure-model:1` from the Azure ML model registry.
+3. Creates an image tag from the Git commit SHA.
+4. Builds a Linux AMD64 Docker image on a GitHub-hosted runner.
+5. Pushes the image to Azure Container Registry.
+6. Updates the existing Azure Container App.
+7. Reports the deployed image, revision, and running state.
+
+The demonstrated deployment used a dedicated temporary user-assigned managed identity. Its permissions were scoped to:
+
+- Pushing images to the project’s Azure Container Registry.
+- Reading the registered model from the project’s Azure ML workspace.
+- Updating the project’s Azure Container App.
+
+GitHub exchanged its signed OIDC identity for a short-lived Azure access token. No Azure password or long-lived client secret was stored in GitHub.
+
+After the successful deployment and health check, the temporary deployment identity and GitHub environment secrets were removed. The workflow remains in the repository as a reproducible deployment definition, but it requires a newly authorized deployment identity before it can run successfully again.
+
+The deployment created a new Container App revision using a commit-specific image tag. The new revision passed its health check and the Container App was then stopped for cost control.
+
+## Security and limitations
+
+The Container App uses a separate runtime managed identity to call Microsoft Foundry and Azure AI Search. Removing the GitHub deployment identity does not affect the application’s runtime identity.
+
+The Docker container:
+
+- Runs as a non-root Linux user.
+- Contains no committed Azure API keys.
+- Uses a health check to verify the FastAPI process.
+- Includes the trusted model downloaded from the Azure ML registry.
+
+The demo ingress has an IP allow rule, but the API has no application-level authentication or rate limiting. It should not be opened broadly without those controls.
+
+Additional limitations include:
+
+- Generated citations are not automatically verified.
+- Retrieval can miss relevant manual sections.
+- The model was trained on synthetic data.
+- The model score is not a calibrated real-world failure probability.
+- The classifier supports only the fictional PX-200 equipment model.
+- The synthetic score must not drive real maintenance decisions.
+
+## Cost control
+
+The Container App is stopped when the demonstration is not being used. Its minimum replica count is configured as zero.
+
+That does not eliminate charges for every associated Azure resource:
+
+- Azure AI Search currently uses its free tier.
+- Azure Container Registry uses the Basic tier.
+- Standard Azure OpenAI model deployments charge for model usage rather than merely storing the deployment.
+- Azure ML does not add a separate platform charge, but its dependent Storage, Key Vault, Application Insights, Log Analytics, and compute resources can incur charges.
+
+Review Azure Cost Management and delete resources when they are no longer required. The source code, tests, synthetic data, CI workflow, and CD workflow remain on GitHub after the Azure resources are removed, but the live API and cloud-dependent RAG requests will no longer work.
 
 ## Next steps
 
-- Add Databricks and Delta Lake to clean and version synthetic sensor data before Azure ML training. The current Azure ML job reads the prepared CSV directly.
-- Add automated deployment and infrastructure definitions.
-- Improve evaluation, citation checks, model calibration, observability, authentication, and usage controls.
+- Add a small, repeatable AI evaluation suite for retrieval quality, grounded answers, and citation validity.
+- Add structured request logging, latency measurements, and basic operational observability.
+- Add infrastructure-as-code definitions for recreating the Azure resources.
+- Add application authentication, rate limiting, and tighter network controls before any public production use.
+- Optionally add Databricks and Delta Lake to clean and version sensor data before Azure ML training. The current training job intentionally reads the prepared CSV directly.
