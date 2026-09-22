@@ -61,7 +61,10 @@ jobs:
           echo "Deploying image: ${IMAGE_URI}"
 
       - name: Sign in to Azure Container Registry
-        run: az acr login --name "$ACR_NAME"
+        run: |
+          az acr login \
+            --name "$ACR_NAME" \
+            --resource-group "$AZURE_RESOURCE_GROUP"
 
       - name: Build container image
         run: |
