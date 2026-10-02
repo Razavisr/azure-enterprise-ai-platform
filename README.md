@@ -1,4 +1,4 @@
-# Azure AI Equipment Diagnostics Platform — ML & RAG Prototype
+# Azure AI Equipment Diagnostics Platform - ML & RAG Prototype
 
 A working equipment-diagnostics prototype built and tested on Azure, then decommissioned on September 28, 2026. It combines a machine-learning score from sensor readings with cited guidance retrieved from equipment manuals.
 
@@ -125,7 +125,7 @@ Before decommissioning, the Azure AI Search index was evaluated with 24 syntheti
 
 A separate 12-question answer review included eight answerable and four unanswerable questions. In that single run, all eight answerable responses cited their expected sections; the four unanswerable responses stated that the requested information was missing rather than inventing it.
 
-These are small, self-authored tests of fictional manuals—not real-world accuracy or safety claims. The cases, saved outputs, methods, and limitations are documented in [evaluation/README.md](evaluation/README.md).
+These are small, self-authored tests of fictional manuals - not real-world accuracy or safety claims. The cases, saved outputs, methods, and limitations are documented in [evaluation/README.md](evaluation/README.md).
 
 ## Observability
 
