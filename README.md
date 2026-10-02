@@ -1,66 +1,70 @@
-# Azure Enterprise AI Platform
+# Azure AI Equipment Diagnostics Platform — ML & RAG Prototype
 
-An Azure-hosted equipment-diagnostics prototype that was deployed and tested, then decommissioned on September 28, 2026. It combines a machine-learning score with guidance retrieved from equipment manuals. All equipment, manuals, readings, and failure labels in this project are synthetic.
+A working equipment-diagnostics prototype built and tested on Azure, then decommissioned on September 28, 2026. It combines a machine-learning score from sensor readings with cited guidance retrieved from equipment manuals.
 
-**Deployment status:** The Azure project resource group has been deleted. The source code, synthetic data, tests, evaluation reports, and CI/CD workflows remain in this repository. There is no live API or Azure Search index.
+**All equipment, manuals, sensor readings, and failure labels in this project are synthetic.** This is a demonstration, not a system for real maintenance decisions.
 
-## What the platform does
+**Deployment status:** The Azure resource group was deleted after testing. The source code, synthetic data, tests, evaluation reports, and CI/CD workflows remain here. There is currently no hosted API or Azure AI Search index.
 
-Imagine a PX-200 pump reporting a casing temperature of 96°C, vibration of 7.8 mm/s, and discharge pressure of 4.0 bar. A user asks what to inspect and what action to take.
+## What it does
 
-The `POST /diagnose` API returns two separate results:
+Imagine a fictional PX-200 pump reporting a casing temperature of 96°C, vibration of 7.8 mm/s, and discharge pressure of 4.0 bar. A user asks what to inspect and what action to take.
 
-- A score from a classifier trained on synthetic sensor readings. In the deployed test, the score was approximately `0.90`, above the demonstration threshold of `0.50`, so the reading was flagged for review.
-- An answer based on retrieved PX-200 manual sections. The answer cites the sections it used and, for these example readings, reports the manual’s controlled-shutdown and maintenance-inspection guidance.
+The `POST /diagnose` endpoint returns two distinct results:
 
-**This is not real-world maintenance advice.** The score is not a calibrated probability of failure, and the fictional manual must not be used to operate equipment.
+1. A score from a classifier trained on synthetic sensor readings. In the deployed test, the score was approximately `0.90`, above the demonstration threshold of `0.50`, so the reading was flagged for review.
+2. An answer grounded in retrieved PX-200 manual sections. The answer cites its sources and, for these readings, reports the fictional manual’s controlled-shutdown and maintenance-inspection guidance.
+
+The score is **not a calibrated probability of real equipment failure**, and the fictional manual must not be used to operate equipment.
 
 ## How it works
 
-Training and document preparation happened before requests were sent to the deployed application:
+Training and document preparation happened before requests reached the application:
 
 ```text
-Synthetic sensor CSV → Azure ML data asset → Azure ML training job
-                     → MLflow metrics → registered model version 1
-                     → trusted model file downloaded and bundled into Docker
+Synthetic sensor CSV
+  → Azure ML data asset
+  → Azure ML training job and MLflow metrics
+  → registered model version
+  → trusted model file bundled into Docker
 
-Synthetic manuals → LangChain text splitting → Foundry embeddings
-                  → Azure AI Search index
+Synthetic equipment manuals
+  → text splitting and Azure OpenAI embeddings
+  → Azure AI Search index
 ```
 
-When deployed, the FastAPI application ran this LangGraph workflow:
+The deployed FastAPI application ran a LangGraph workflow:
 
 ```text
 POST /diagnose
-  → validate the question and six PX-200 sensor readings
+  → validate question and PX-200 sensor readings
   → predict: score the reading with the model inside the container
-  → retrieve: search PX-200 manual sections using keywords and vectors
-  → generate: ask Foundry's gpt-5-mini to answer from those sections
+  → retrieve: find relevant manual sections with hybrid keyword/vector search
+  → generate: ask Azure OpenAI to answer using those sections
   → return {prediction, answer}
 ```
 
-The model score and the manual answer remain distinct. The answer generator receives the question, sensor readings, and retrieved manual excerpts; it **does not use the model score as evidence** for a manual recommendation.
+The model score and manual-grounded answer remain separate. The answer generator receives the question, sensor readings, and retrieved manual excerpts; it does **not** treat the model score as evidence for a manual recommendation.
 
-The deployed application used a user-assigned managed identity to access Foundry and Azure AI Search. No Azure API keys are stored in the repository or Docker image.
+During deployment, a user-assigned managed identity allowed the Container App to access Microsoft Foundry and Azure AI Search. No Azure API keys were stored in the repository or Docker image.
 
-## Implemented components
+## Components
 
-| Component | Role |
+| Component | Purpose |
 |---|---|
-| FastAPI | Exposes `/health`, `/ask`, `/predict`, and `/diagnose` |
-| LangGraph | Orchestrates retrieval, generation, and the combined diagnosis workflow |
-| LangChain text splitters | Divide the synthetic manuals into searchable sections |
-| Microsoft Foundry | Hosted `gpt-5-mini` and `text-embedding-3-small` deployments |
-| Azure AI Search | Stored 13 manual sections and supported equipment-filtered hybrid keyword/vector search |
-| Azure Machine Learning | Ran training on a versioned synthetic CSV data asset |
-| MLflow and Azure ML model registry | Recorded training metrics and stored model version 1 |
-| Azure Container Registry and Container Apps | Stored commit-tagged Docker images and hosted the API |
-| GitHub Actions | Runs automatic CI checks and retains the manually triggered Azure deployment workflow |
-| Structured observability | Logs request metadata, response request IDs, and diagnosis-stage timing |
+| FastAPI and Pydantic | Validate inputs and expose `/health`, `/ask`, `/predict`, and `/diagnose` |
+| LangGraph | Orchestrate retrieval, answer generation, and combined diagnosis |
+| Microsoft Foundry / Azure OpenAI | Host `gpt-5-mini` and `text-embedding-3-small` deployments |
+| Azure AI Search | Store manual sections and perform equipment-filtered hybrid search |
+| Azure Machine Learning | Train the classifier using a versioned synthetic data asset |
+| MLflow and Azure ML model registry | Track training metrics and register the model |
+| Docker, Azure Container Registry, and Container Apps | Package, store, and host the API |
+| GitHub Actions | Run automatic CI and a manually triggered Azure deployment workflow |
+| Structured logging | Record request IDs, request latency, and workflow-stage timing |
 
-The model was trained and registered in Azure ML, then downloaded and copied into the Docker image. **During deployment, prediction ran inside the Container App; this project did not use an Azure ML online endpoint.** Azure Functions is not part of the design.
+The model was trained and registered in Azure ML, then downloaded and included in the Docker image. **Prediction ran inside the Container App, not on an Azure ML online endpoint.** Azure Functions was not used.
 
-The Container App was tested with `GET /health`, `POST /predict`, and `POST /diagnose` before it was deleted. The current source passes **41 offline tests**, Ruff linting and formatting, and strict mypy type checking. The observability code was verified locally but was not redeployed to Azure.
+The deployed API was tested through `/health`, `/predict`, and `/diagnose` before the Azure resources were deleted. The repository has **41 offline tests**. Structured observability was verified locally but was not redeployed to Azure.
 
 ## API
 
@@ -69,9 +73,9 @@ The Container App was tested with `GET /health`, `POST /predict`, and `POST /dia
 | `GET /health` | None | Service status |
 | `POST /ask` | Question and equipment model | Manual-grounded answer |
 | `POST /predict` | Six PX-200 sensor readings | Model score and review flag |
-| `POST /diagnose` | Question and six PX-200 readings | Prediction plus manual-grounded answer |
+| `POST /diagnose` | Question and six PX-200 readings | Prediction and cited manual-grounded answer |
 
-The `/ask` implementation supports the fictional PX-200 and AX-100 manuals when a search index is available. The trained classifier supports **PX-200 only**.
+`/ask` supports the fictional PX-200 and AX-100 manuals when an Azure AI Search index is configured. The trained classifier supports **PX-200 only**.
 
 Example `/diagnose` request:
 
@@ -90,13 +94,13 @@ Example `/diagnose` request:
 }
 ```
 
-The response contains a `prediction` object and an `answer` string with retrieved source references. Search ranking scores are not the same as the ML failure score.
+The response contains a `prediction` object and an `answer` string with retrieved source references. Search-ranking scores are not the same as the ML model score.
 
 ## Data and model
 
-The repository includes two fictional manuals and 800 synthetic PX-200 sensor rows. The classifier uses casing temperature, vibration, discharge pressure, flow, motor current, and hours since maintenance to predict the synthetic `failure_within_7_days` label.
+This repository includes two fictional equipment manuals and 800 synthetic PX-200 sensor rows. The classifier uses casing temperature, vibration, discharge pressure, flow, motor current, and hours since maintenance to predict a synthetic `failure_within_7_days` label.
 
-Training uses a standard scaler and logistic regression, compared with a dummy baseline. A stratified split used 600 rows for training and 200 for testing. The Azure ML run recorded:
+Training compares a standard-scaler and logistic-regression pipeline with a dummy baseline. A stratified split used 600 rows for training and 200 for testing. The Azure ML run recorded:
 
 | Metric | Synthetic-data result |
 |---|---:|
@@ -106,25 +110,32 @@ Training uses a standard scaler and logistic regression, compared with a dummy b
 | Precision at threshold 0.5 | 0.708 |
 | Recall at threshold 0.5 | 0.447 |
 
-These are demonstration metrics, not evidence of real equipment reliability. Recall of `0.447` means the model missed many simulated failures in its test set.
+These are demonstration metrics, **not evidence of real-world equipment reliability**. The recall of `0.447` means the model missed many simulated failures in its test set.
 
 ## Evaluation
 
-Before decommissioning, the Azure AI Search index was tested with 24 synthetic questions: Hit@1 was 75%, Hit@3 was 100%, MRR@5 was 0.868, and mean Recall@3 was 98%. For questions needing two manual sections, both sections appeared in the top five used by the application.
+Before decommissioning, the Azure AI Search index was evaluated with 24 synthetic questions:
 
-A separate 12-question answer review covered eight answerable and four unanswerable questions. In this single run, all eight answers cited their expected sections, and the four unanswerable answers said the requested information was missing rather than inventing it.
+| Retrieval metric | Result |
+|---|---:|
+| Hit@1 | 75% |
+| Hit@3 | 100% |
+| MRR@5 | 0.868 |
+| Mean Recall@3 | 98% |
 
-These are small, self-authored tests of fictional manuals—not real-world accuracy or safety claims. The test cases, saved outputs, methods, and limitations are in [evaluation/README.md](evaluation/README.md).
+A separate 12-question answer review included eight answerable and four unanswerable questions. In that single run, all eight answerable responses cited their expected sections; the four unanswerable responses stated that the requested information was missing rather than inventing it.
+
+These are small, self-authored tests of fictional manuals—not real-world accuracy or safety claims. The cases, saved outputs, methods, and limitations are documented in [evaluation/README.md](evaluation/README.md).
 
 ## Observability
 
-The API code produces a JSON log for each request with a request ID, method, matched route, status code, and total duration. Responses handled by the middleware include the same ID in an `X-Request-ID` header. The `/diagnose` workflow also logs the outcome and duration of prediction, retrieval, and answer generation.
+The API code emits a JSON log for each request with a request ID, method, matched route, status code, and total duration. Responses handled by the middleware include the same ID in an `X-Request-ID` header.
 
-These structured logs do not include the question, sensor readings, request body, URL query values, or exception message. A local end-to-end request returned HTTP 200 and produced the three stage logs plus the total-request log. This logging code was verified locally but was not deployed to Azure.
+The `/diagnose` workflow also logs the outcome and duration of prediction, retrieval, and answer generation. These logs do not include questions, sensor readings, request bodies, URL query values, or exception messages.
 
-Stage logs do not yet carry the request ID, so they cannot be reliably matched to a particular request when requests run concurrently.
+This logging was verified with a local end-to-end request, but it was **not deployed to Azure**. Stage logs do not yet carry the request ID, so they cannot reliably be matched to a particular request when requests run concurrently.
 
-## Run it locally
+## Run locally
 
 Use Python 3.12:
 
@@ -136,7 +147,7 @@ source .venv/bin/activate
 python -m pip install -e '.[dev,ml]'
 ```
 
-The tests need no Azure account or paid API calls:
+Run the offline checks without an Azure account or paid API calls:
 
 ```bash
 ruff check .
@@ -145,7 +156,7 @@ mypy src tests
 pytest -q
 ```
 
-To train a local model from the included synthetic data, save it at the path expected by the API and Dockerfile:
+Train a local model from the included synthetic CSV and save it where the API and Dockerfile expect it:
 
 ```bash
 MLFLOW_ALLOW_FILE_STORE=true MLFLOW_TRACKING_URI=./mlruns \
@@ -154,105 +165,64 @@ python training/train.py \
   --model-output artifacts/px200-failure-model/px200_failure_model.joblib
 ```
 
-You can then start the API and test `/health` and `/predict` without Azure:
+Start the API:
 
 ```bash
 python -m uvicorn enterprise_ai_platform.main:app --reload
 ```
 
-Open `http://127.0.0.1:8000/docs` for the interactive API page.
+Open `http://127.0.0.1:8000/docs` for the interactive API documentation. With the local model file, `/health` and `/predict` work without Azure.
 
-To use `/ask` or `/diagnose`, you must create new Foundry deployments and an Azure AI Search service. Configure their endpoints in a local `.env` file based on `.env.example`, sign in with `az login`, and prepare the search index:
+To use `/ask` or `/diagnose`, you must first create new Microsoft Foundry model deployments and an Azure AI Search service. Configure their endpoints in a local `.env` file based on `.env.example`, sign in with `az login`, and prepare the search index:
 
 ```bash
 python -m enterprise_ai_platform.rag.create_index
 python -m enterprise_ai_platform.rag.upload_manuals
 ```
 
-Those preparation commands and live RAG requests make Azure calls and require suitable access. Do not commit `.env`, credentials, tokens, or connection strings.
+Those commands and live RAG requests make Azure calls and require appropriate permissions. **Do not commit** `.env`, credentials, tokens, or connection strings.
 
-The Azure ML job definition is in `azureml-train-job.yml`. It expects an Azure ML workspace and a `px200-sensor-readings:1` data asset; the original workspace and asset have been deleted.
+The Azure ML job definition is in `azureml-train-job.yml`. It expects an Azure ML workspace and a `px200-sensor-readings:1` data asset. The original workspace and asset were deleted.
 
-The registered model file is not stored in Git and can no longer be downloaded from the deleted workspace. Use the local training command above to create a model file. Only load joblib model files from trusted sources.
+The registered model file is not stored in Git and can no longer be downloaded from the deleted workspace. Use the local training command above to create one, and only load joblib files from trusted sources.
 
-After the model file exists at the expected path, build a Linux image with:
+After the model file exists, build a Linux image with:
 
 ```bash
 docker build --platform linux/amd64 \
   --tag azure-enterprise-ai-platform:diagnose-local .
 ```
 
-The image contains the API code and model, but the manuals are retrieved from Azure AI Search at runtime. A locally running Docker container does not automatically inherit Azure CLI credentials; the former Azure deployment used managed identity instead.
+The image includes the API code and model. The manuals are retrieved from Azure AI Search at runtime. A local Docker container does not automatically inherit Azure CLI credentials; the former Azure deployment used managed identity.
 
-## Continuous integration
+## CI/CD
 
-The `.github/workflows/ci.yml` workflow runs automatically for pushes and pull requests targeting `main`.
+The GitHub Actions CI workflow runs automatically on pushes and pull requests targeting `main`. It installs the project, checks dependency compatibility, runs Ruff lint and formatting checks, performs strict mypy checking, and runs the offline pytest suite. CI does not call paid Azure services.
 
-It:
+The separate CD workflow is **manually triggered**, not run on every push. During the completed deployment, it used GitHub OIDC authentication to download the registered Azure ML model, build and push a commit-tagged Docker image to Azure Container Registry, and update Azure Container Apps. It used a dedicated deployment identity rather than a stored Azure password or long-lived client secret.
 
-1. Checks out the repository.
-2. Configures Python 3.12.
-3. Installs the project and development dependencies.
-4. Checks installed dependency compatibility.
-5. Runs Ruff linting.
-6. Checks Ruff formatting.
-7. Runs strict mypy type checking.
-8. Runs the offline pytest suite.
-
-The CI tests do not call Azure OpenAI, Azure AI Search, or other paid Azure services.
-
-## Continuous deployment
-
-The `.github/workflows/deploy.yml` records the manually triggered deployment workflow used for this project. A normal Git push does not deploy the application automatically.
-
-In the completed deployment, the workflow:
-
-1. Authenticated to Azure through OpenID Connect.
-2. Downloaded `px200-failure-model:1` from the Azure ML model registry.
-3. Created an image tag from the Git commit SHA.
-4. Built a Linux AMD64 Docker image on a GitHub-hosted runner.
-5. Pushed the image to Azure Container Registry.
-6. Updated the Azure Container App.
-7. Reported the deployed image, revision, and running state.
-
-The deployment used a dedicated temporary user-assigned managed identity. Its permissions were scoped to pushing images to the project registry, reading the registered model, and updating the Container App. GitHub exchanged its signed OIDC identity for a short-lived Azure access token; no Azure password or long-lived client secret was stored in GitHub.
-
-The new Container App revision passed its health check. The app was later stopped for cost control, and the project’s Azure resources were subsequently deleted.
-
-**The CD workflow cannot run successfully as-is.** It requires a new Azure resource group and services, a registered model, and a newly authorized deployment identity. The temporary deployment identity and GitHub environment secrets were removed after the demonstration.
+**The CD workflow cannot run successfully as-is today.** The Azure resources and temporary deployment identity were deleted, and the GitHub environment secrets were removed after the demonstration. Reusing it would require new Azure services, a registered model, and a newly authorized identity.
 
 ## Security and limitations
 
-During deployment, the Container App used a runtime managed identity to call Microsoft Foundry and Azure AI Search. This was separate from the temporary GitHub deployment identity.
+During deployment, the Container App used a runtime managed identity to call Microsoft Foundry and Azure AI Search. This identity was separate from the temporary GitHub deployment identity.
 
-The Docker container:
+The Docker container ran as a non-root Linux user, included no committed Azure API keys, and used a health check. Its model file came from the Azure ML registry during deployment.
 
-- Runs as a non-root Linux user.
-- Contains no committed Azure API keys.
-- Uses a health check to verify the FastAPI process.
-- Requires a trusted model file at build time; the deployed image included the model downloaded from the Azure ML registry.
+The demonstration ingress had an IP allow rule, but the API has no application-level authentication or rate limiting. It should not be opened broadly without those controls.
 
-The demo ingress had an IP allow rule, but the API has no application-level authentication or rate limiting. It should not be opened broadly without those controls.
+Other limitations include:
 
-Additional limitations include:
-
-- Citation numbers and expected sections are checked in a small evaluation set, but claim-level support is not automatically verified.
-- Retrieval can miss relevant manual sections.
-- The model was trained on synthetic data.
-- The model score is not a calibrated real-world failure probability.
 - The classifier supports only the fictional PX-200 equipment model.
-- The synthetic score must not drive real maintenance decisions.
+- The model was trained on synthetic data; its score is not a calibrated real-world failure probability.
+- Retrieval can miss relevant manual sections.
+- Citation numbers and expected sections were checked in a small evaluation set, but claim-level support was not automatically verified.
+- Neither the synthetic score nor the fictional manual guidance should drive real maintenance decisions.
 
-## Azure resource cleanup
+## Azure cleanup and future work
 
-On September 28, 2026, the project resource group `rg-enterprise-ai-platform-dev` was deleted. `az group exists` returned `false`, and `az resource list` returned no active resources in the selected subscription.
+On September 28, 2026, the project resource group `rg-enterprise-ai-platform-dev` was deleted. `az group exists` returned `false`, and `az resource list` returned no active resources in the selected subscription. This removed the hosted API, registry, search index, model deployments, Azure ML workspace and assets, and supporting resources.
 
-This removed the cloud API, registry, search index, model deployments, Azure ML workspace and stored assets, and their supporting resources. The Azure subscription and historical usage records remain. The source code, tests, synthetic data, evaluation reports, and GitHub workflows remain available, but cloud-dependent requests will not work until new Azure resources are configured.
+The Azure subscription and historical usage records were separate from the project resources. Cloud-dependent requests will not work until new services are configured.
 
-## Optional next steps
-
-- Expand evaluation using independently authored questions and repeated runs.
-- Correlate diagnosis-stage logs with request IDs.
-- Add infrastructure-as-code definitions for recreating the Azure resources.
-- Add application authentication, rate limiting, and tighter network controls before any public production use.
-- Optionally add Databricks and Delta Lake to clean and version sensor data before Azure ML training. The current training job intentionally reads the prepared CSV directly.
+Possible extensions include broader independent evaluation, request-ID correlation across workflow stages, infrastructure-as-code for recreating Azure resources, and application authentication before public use. Databricks and Delta Lake could optionally be added later for sensor-data preparation; the current training job intentionally reads the prepared CSV directly.
